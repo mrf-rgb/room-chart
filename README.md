@@ -21,4 +21,4 @@ node tests/model.test.mjs
 node tests/test-server.mjs 8123 <folder with a copy of the sample data>
 ```
 
-The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`) use `playwright-core` with a local Chrome.
+The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`, `tests/touch.mjs` for finger taps) use `playwright-core` with a local Chrome.

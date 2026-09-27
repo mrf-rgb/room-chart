@@ -79,7 +79,7 @@ body.editing .fab { bottom: 96px; }
 .seat.dragging .card { opacity: .35; }
 .table.tsel .desk { stroke: #f59e0b; stroke-width: 5; }
 @keyframes pulse { 50% { stroke-width: 2; } }
-.labels text { pointer-events: none; }
+.labels { pointer-events: none; } /* names, codes and chips: a tap goes through to the seat below */
 .name { font-weight: 800; text-anchor: middle; fill: var(--ink); dominant-baseline: middle; }
 .name.code-only { font-variant-numeric: tabular-nums; letter-spacing: 1px; }
 .code { font-size: 15px; text-anchor: end; fill: var(--muted); font-variant-numeric: tabular-nums; }

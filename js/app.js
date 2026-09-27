@@ -81,6 +81,16 @@ async function save(sync = true) {
 
 // ---------- sheets, prompts, modals ----------
 
+// A tap that opens a menu ends with the browser's own click, which lands on whatever is under the
+// finger by then: the new menu. So a menu or screen acts only on a press that began after it opened.
+let presses = 0;
+function opened(el) { el.dataset.press = presses; el.hidden = false; }
+function guardClicks(el) {
+  el.addEventListener('click', (e) => {
+    if (e.detail && Number(el.dataset.press) === presses) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+}
+
 function closeSheet() { $('sheet').hidden = true; $('sheet').textContent = ''; }
 
 function sheet(title, subtitle, buttons, opts = {}) {
@@ -96,7 +106,7 @@ function sheet(title, subtitle, buttons, opts = {}) {
       }, b.letter ? h('span', { class: 'sletter', text: b.letter }) : null, h('span', { text: b.label })))),
     opts.noCancel ? null : h('button', { class: 'sbtn cancel', onclick: closeSheet, text: 'Cancel' }));
   sh.append(panel);
-  sh.hidden = false;
+  opened(sh);
 }
 
 function prompt(title, value = '', okLabel = 'OK') {
@@ -111,7 +121,7 @@ function prompt(title, value = '', okLabel = 'OK') {
       h('div', { class: 'sheet-buttons row' },
         h('button', { class: 'sbtn primary', onclick: () => done(input.value.trim()), text: okLabel }),
         h('button', { class: 'sbtn cancel', onclick: () => done(null), text: 'Cancel' }))));
-    sh.hidden = false;
+    opened(sh);
     setTimeout(() => { input.focus(); input.select(); }, 50);
   });
 }
@@ -132,7 +142,7 @@ function modal(title, body, onClose) {
     h('div', { class: 'modal-title', text: title }),
     h('button', { class: 'tbtn', onclick: () => { m.hidden = true; m.textContent = ''; onClose && onClose(); }, text: 'Close' })),
   h('div', { class: 'modal-body' }, body));
-  m.hidden = false;
+  opened(m);
 }
 function closeModal() { $('modal').hidden = true; $('modal').textContent = ''; }
 
@@ -796,6 +806,8 @@ function wire() {
   $('e-seat-minus').onclick = () => editAction('seat-');
   $('e-del').onclick = () => editAction('del');
   $('e-menu').onclick = chartMenu;
+  document.addEventListener('pointerdown', () => { presses++; }, true);
+  guardClicks($('sheet')); guardClicks($('modal'));
   $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeSheet(); });
   window.addEventListener('online', () => sync(false));
   window.addEventListener('offline', renderSync);
