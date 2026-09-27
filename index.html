@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1f2a44">
+<title>Room Chart</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header id="top">
+  <div class="bar">
+    <select id="cls" aria-label="Class"></select>
+    <select id="chart" aria-label="Seating chart"></select>
+    <button id="view" class="tbtn" aria-pressed="false">Door view</button>
+    <button id="sync" class="pill">&hellip;</button>
+  </div>
+  <div class="bar">
+    <button id="lesson" class="lesson">Lesson</button>
+    <span id="date" class="date"></span>
+    <span class="spacer"></span>
+    <button id="pick" class="tbtn" title="Random student">Pick</button>
+    <button id="summary" class="tbtn" title="Day summary">Day</button>
+    <button id="history" class="tbtn" title="Attendance history"><span class="long">History</span><span class="short">Hist</span></button>
+    <button id="edit" class="tbtn">Edit</button>
+    <button id="settings" class="tbtn" title="Settings" aria-label="Settings">&#9881;</button>
+  </div>
+  <nav id="modes" aria-label="Mode"></nav>
+  <div id="editbar" class="bar editbar" hidden>
+    <span id="edit-name" class="edit-name"></span>
+    <button id="e-add" class="tbtn">+ Table</button>
+    <button id="e-left" class="tbtn" title="Rotate left 15&deg;">&#10226; 15&deg;</button>
+    <button id="e-right" class="tbtn" title="Rotate right 15&deg;">&#10227; 15&deg;</button>
+    <button id="e-turn" class="tbtn">Turn around</button>
+    <button id="e-seat-plus" class="tbtn">+ Seat</button>
+    <button id="e-seat-minus" class="tbtn">&minus; Seat</button>
+    <button id="e-del" class="tbtn danger">Delete table</button>
+    <button id="e-menu" class="tbtn">Chart &#8943;</button>
+  </div>
+</header>
+<main id="stage">
+  <svg id="svg" role="img" aria-label="Seating chart"></svg>
+  <button id="fit" class="fab" title="Fit the room to the screen">Fit</button>
+  <div id="tray" class="tray" hidden></div>
+</main>
+<div id="sheet" class="sheet" hidden></div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" role="status"></div>
+<div id="welcome" class="welcome" hidden>
+  <div class="welcome-card">
+    <h1>Room Chart</h1>
+    <p>Seating chart and class marks. Taps are saved on this device first and synced to your Google Drive data file.</p>
+    <button id="w-connect" class="sbtn primary">Connect Google Drive</button>
+    <button id="w-sample" class="sbtn">Try it with sample data</button>
+    <p id="w-note" class="muted"></p>
+  </div>
+</div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

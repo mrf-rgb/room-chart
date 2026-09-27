@@ -1,0 +1,2085 @@
+{
+ "schema": "room-chart/1",
+ "room": {
+  "w": 1060,
+  "h": 680
+ },
+ "classes": [
+  {
+   "id": "B1",
+   "label": "B1 M8 Honors",
+   "order": 1,
+   "updatedAt": "2026-09-27T12:00:00.000Z"
+  },
+  {
+   "id": "B3",
+   "label": "B3 M8 Regular",
+   "order": 3,
+   "updatedAt": "2026-09-27T12:00:00.000Z"
+  },
+  {
+   "id": "B4",
+   "label": "B4 M8 Regular",
+   "order": 4,
+   "updatedAt": "2026-09-27T12:00:00.000Z"
+  },
+  {
+   "id": "B5",
+   "label": "B5 M8 Regular",
+   "order": 5,
+   "updatedAt": "2026-09-27T12:00:00.000Z"
+  }
+ ],
+ "roster": {
+  "B1": [
+   {
+    "code": "7101",
+    "name": "",
+    "active": true,
+    "order": 1,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7104",
+    "name": "",
+    "active": true,
+    "order": 2,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7107",
+    "name": "",
+    "active": true,
+    "order": 3,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7110",
+    "name": "",
+    "active": true,
+    "order": 4,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7113",
+    "name": "",
+    "active": true,
+    "order": 5,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7116",
+    "name": "",
+    "active": true,
+    "order": 6,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7119",
+    "name": "",
+    "active": true,
+    "order": 7,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7122",
+    "name": "",
+    "active": true,
+    "order": 8,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7125",
+    "name": "",
+    "active": true,
+    "order": 9,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7128",
+    "name": "",
+    "active": true,
+    "order": 10,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7131",
+    "name": "",
+    "active": true,
+    "order": 11,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7134",
+    "name": "",
+    "active": true,
+    "order": 12,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7137",
+    "name": "",
+    "active": true,
+    "order": 13,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7140",
+    "name": "",
+    "active": true,
+    "order": 14,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7143",
+    "name": "",
+    "active": true,
+    "order": 15,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7146",
+    "name": "",
+    "active": true,
+    "order": 16,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7149",
+    "name": "",
+    "active": true,
+    "order": 17,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7152",
+    "name": "",
+    "active": true,
+    "order": 18,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7155",
+    "name": "",
+    "active": true,
+    "order": 19,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7158",
+    "name": "",
+    "active": true,
+    "order": 20,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7161",
+    "name": "",
+    "active": true,
+    "order": 21,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7164",
+    "name": "",
+    "active": true,
+    "order": 22,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7167",
+    "name": "",
+    "active": true,
+    "order": 23,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7170",
+    "name": "",
+    "active": true,
+    "order": 24,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7173",
+    "name": "",
+    "active": true,
+    "order": 25,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7176",
+    "name": "",
+    "active": true,
+    "order": 26,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7179",
+    "name": "",
+    "active": true,
+    "order": 27,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7182",
+    "name": "",
+    "active": true,
+    "order": 28,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7185",
+    "name": "",
+    "active": true,
+    "order": 29,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7188",
+    "name": "",
+    "active": true,
+    "order": 30,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   }
+  ],
+  "B3": [
+   {
+    "code": "7301",
+    "name": "",
+    "active": true,
+    "order": 1,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7304",
+    "name": "",
+    "active": true,
+    "order": 2,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7307",
+    "name": "",
+    "active": true,
+    "order": 3,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7310",
+    "name": "",
+    "active": true,
+    "order": 4,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7313",
+    "name": "",
+    "active": true,
+    "order": 5,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7316",
+    "name": "",
+    "active": true,
+    "order": 6,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7319",
+    "name": "",
+    "active": true,
+    "order": 7,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7322",
+    "name": "",
+    "active": true,
+    "order": 8,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7325",
+    "name": "",
+    "active": true,
+    "order": 9,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7328",
+    "name": "",
+    "active": true,
+    "order": 10,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7331",
+    "name": "",
+    "active": true,
+    "order": 11,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7334",
+    "name": "",
+    "active": true,
+    "order": 12,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7337",
+    "name": "",
+    "active": true,
+    "order": 13,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7340",
+    "name": "",
+    "active": true,
+    "order": 14,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7343",
+    "name": "",
+    "active": true,
+    "order": 15,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7346",
+    "name": "",
+    "active": true,
+    "order": 16,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7349",
+    "name": "",
+    "active": true,
+    "order": 17,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7352",
+    "name": "",
+    "active": true,
+    "order": 18,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7355",
+    "name": "",
+    "active": true,
+    "order": 19,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7358",
+    "name": "",
+    "active": true,
+    "order": 20,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7361",
+    "name": "",
+    "active": true,
+    "order": 21,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7364",
+    "name": "",
+    "active": true,
+    "order": 22,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7367",
+    "name": "",
+    "active": true,
+    "order": 23,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "7370",
+    "name": "",
+    "active": true,
+    "order": 24,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   }
+  ],
+  "B4": [
+   {
+    "code": "8401",
+    "name": "",
+    "active": true,
+    "order": 1,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8404",
+    "name": "",
+    "active": true,
+    "order": 2,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8407",
+    "name": "",
+    "active": true,
+    "order": 3,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8410",
+    "name": "",
+    "active": true,
+    "order": 4,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8413",
+    "name": "",
+    "active": true,
+    "order": 5,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8416",
+    "name": "",
+    "active": true,
+    "order": 6,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8419",
+    "name": "",
+    "active": true,
+    "order": 7,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8422",
+    "name": "",
+    "active": true,
+    "order": 8,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8425",
+    "name": "",
+    "active": true,
+    "order": 9,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8428",
+    "name": "",
+    "active": true,
+    "order": 10,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8431",
+    "name": "",
+    "active": true,
+    "order": 11,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8434",
+    "name": "",
+    "active": true,
+    "order": 12,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8437",
+    "name": "",
+    "active": true,
+    "order": 13,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8440",
+    "name": "",
+    "active": true,
+    "order": 14,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8443",
+    "name": "",
+    "active": true,
+    "order": 15,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8446",
+    "name": "",
+    "active": true,
+    "order": 16,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8449",
+    "name": "",
+    "active": true,
+    "order": 17,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8452",
+    "name": "",
+    "active": true,
+    "order": 18,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8455",
+    "name": "",
+    "active": true,
+    "order": 19,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8458",
+    "name": "",
+    "active": true,
+    "order": 20,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8461",
+    "name": "",
+    "active": true,
+    "order": 21,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8464",
+    "name": "",
+    "active": true,
+    "order": 22,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   }
+  ],
+  "B5": [
+   {
+    "code": "8501",
+    "name": "",
+    "active": true,
+    "order": 1,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8504",
+    "name": "",
+    "active": true,
+    "order": 2,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8507",
+    "name": "",
+    "active": true,
+    "order": 3,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8510",
+    "name": "",
+    "active": true,
+    "order": 4,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8513",
+    "name": "",
+    "active": true,
+    "order": 5,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8516",
+    "name": "",
+    "active": true,
+    "order": 6,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8519",
+    "name": "",
+    "active": true,
+    "order": 7,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8522",
+    "name": "",
+    "active": true,
+    "order": 8,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8525",
+    "name": "",
+    "active": true,
+    "order": 9,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8528",
+    "name": "",
+    "active": true,
+    "order": 10,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8531",
+    "name": "",
+    "active": true,
+    "order": 11,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8534",
+    "name": "",
+    "active": true,
+    "order": 12,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8537",
+    "name": "",
+    "active": true,
+    "order": 13,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8540",
+    "name": "",
+    "active": true,
+    "order": 14,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8543",
+    "name": "",
+    "active": true,
+    "order": 15,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8546",
+    "name": "",
+    "active": true,
+    "order": 16,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8549",
+    "name": "",
+    "active": true,
+    "order": 17,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8552",
+    "name": "",
+    "active": true,
+    "order": 18,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8555",
+    "name": "",
+    "active": true,
+    "order": 19,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8558",
+    "name": "",
+    "active": true,
+    "order": 20,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8561",
+    "name": "",
+    "active": true,
+    "order": 21,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8564",
+    "name": "",
+    "active": true,
+    "order": 22,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8567",
+    "name": "",
+    "active": true,
+    "order": 23,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8570",
+    "name": "",
+    "active": true,
+    "order": 24,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8573",
+    "name": "",
+    "active": true,
+    "order": 25,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   },
+   {
+    "code": "8576",
+    "name": "",
+    "active": true,
+    "order": 26,
+    "updatedAt": "2026-09-27T12:00:00.000Z"
+   }
+  ]
+ },
+ "charts": {
+  "B1": [
+   {
+    "id": "regular",
+    "name": "Regular",
+    "createdAt": "2026-09-27T12:00:00.000Z",
+    "updatedAt": "2026-09-27T12:00:00.000Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7137",
+       "7116"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7173",
+       "7176"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7143",
+       "7149"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7113",
+       "7185"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7128",
+       "7155"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7179",
+       "7161"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7164",
+       "7119"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7146",
+       "7182"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7131",
+       "7134"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7104",
+       "7125"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7101",
+       "7122"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7140",
+       "7152"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7170",
+       "7158"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7107",
+       "7167"
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7188",
+       "7110"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "reteach-0923",
+    "name": "Reteach 9/23",
+    "createdAt": "2026-09-27T12:00:00.001Z",
+    "updatedAt": "2026-09-27T12:00:00.001Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "7116",
+       "7137"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "7176",
+       "7173"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "7149",
+       "7143"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7113",
+       "7185"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7128",
+       "7155"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7179",
+       "7161"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "7119",
+       "7164"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "7182",
+       "7146"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "7134",
+       "7131"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7104",
+       "7125"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7101",
+       "7122"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7140",
+       "7152"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7170",
+       "7158"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7107",
+       "7167"
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7188",
+       "7110"
+      ]
+     }
+    ]
+   }
+  ],
+  "B3": [
+   {
+    "id": "regular",
+    "name": "Regular",
+    "createdAt": "2026-09-27T12:00:00.000Z",
+    "updatedAt": "2026-09-27T12:00:00.000Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7346",
+       "7370"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7343",
+       null
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "7355",
+       "7310"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7316",
+       "7340"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7352",
+       "7334"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7349",
+       "7301"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7361",
+       null
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7337",
+       "7319"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "7328",
+       "7313"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7304",
+       null
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7331",
+       "7358"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7325",
+       "7364"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "7307"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       null
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7322",
+       "7367"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "reteach-0923",
+    "name": "Reteach 9/23",
+    "createdAt": "2026-09-27T12:00:00.001Z",
+    "updatedAt": "2026-09-27T12:00:00.001Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "7370",
+       "7346"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       null,
+       "7343"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "7310",
+       "7355"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7316",
+       "7340"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7352",
+       "7334"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "7349",
+       "7301"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       null,
+       "7361"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "7319",
+       "7337"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "7313",
+       "7328"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7304",
+       null
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7331",
+       "7358"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "7325",
+       "7364"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "7307"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       null
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "7322",
+       "7367"
+      ]
+     }
+    ]
+   }
+  ],
+  "B4": [
+   {
+    "id": "regular",
+    "name": "Regular",
+    "createdAt": "2026-09-27T12:00:00.000Z",
+    "updatedAt": "2026-09-27T12:00:00.000Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "8449",
+       null
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       null,
+       "8452"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "8431",
+       "8422"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8464",
+       "8440"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8401",
+       null
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8437",
+       "8416"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "8419",
+       "8434"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       null,
+       "8404"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "8410",
+       "8455"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8458",
+       "8443"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       null,
+       "8446"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8425",
+       "8407"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "8413"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8428",
+       null
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8461",
+       null
+      ]
+     }
+    ]
+   },
+   {
+    "id": "reteach-0923",
+    "name": "Reteach 9/23",
+    "createdAt": "2026-09-27T12:00:00.001Z",
+    "updatedAt": "2026-09-27T12:00:00.001Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       null,
+       "8449"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "8452",
+       null
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "8422",
+       "8431"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8464",
+       "8440"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8401",
+       null
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8437",
+       "8416"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8434",
+       "8419"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8404",
+       null
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8455",
+       "8410"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8458",
+       "8443"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       null,
+       "8446"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8425",
+       "8407"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "8413"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8428",
+       null
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8461",
+       null
+      ]
+     }
+    ]
+   }
+  ],
+  "B5": [
+   {
+    "id": "regular",
+    "name": "Regular",
+    "createdAt": "2026-09-27T12:00:00.000Z",
+    "updatedAt": "2026-09-27T12:00:00.000Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "8564",
+       "8507"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "8570",
+       "8561"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 0,
+      "seats": [
+       "8501",
+       "8504"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8543",
+       "8510"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8534",
+       "8531"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       null,
+       "8537"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       null,
+       "8558"
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       null,
+       "8567"
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 0,
+      "seats": [
+       "8513",
+       "8540"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8519",
+       "8576"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8528",
+       "8516"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8555",
+       "8522"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "8552"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8525",
+       "8549"
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8546",
+       "8573"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "reteach-0923",
+    "name": "Reteach 9/23",
+    "createdAt": "2026-09-27T12:00:00.001Z",
+    "updatedAt": "2026-09-27T12:00:00.001Z",
+    "updatedBy": "desktop",
+    "tables": [
+     {
+      "id": "r1c1",
+      "x": 185,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "8507",
+       "8564"
+      ]
+     },
+     {
+      "id": "r1c2",
+      "x": 530,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "8561",
+       "8570"
+      ]
+     },
+     {
+      "id": "r1c3",
+      "x": 875,
+      "y": 90,
+      "rot": 180,
+      "seats": [
+       "8504",
+       "8501"
+      ]
+     },
+     {
+      "id": "r2c1",
+      "x": 185,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8543",
+       "8510"
+      ]
+     },
+     {
+      "id": "r2c2",
+      "x": 530,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       "8534",
+       "8531"
+      ]
+     },
+     {
+      "id": "r2c3",
+      "x": 875,
+      "y": 190,
+      "rot": 0,
+      "seats": [
+       null,
+       "8537"
+      ]
+     },
+     {
+      "id": "r3c1",
+      "x": 185,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8558",
+       null
+      ]
+     },
+     {
+      "id": "r3c2",
+      "x": 530,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8567",
+       null
+      ]
+     },
+     {
+      "id": "r3c3",
+      "x": 875,
+      "y": 330,
+      "rot": 180,
+      "seats": [
+       "8540",
+       "8513"
+      ]
+     },
+     {
+      "id": "r4c1",
+      "x": 185,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8519",
+       "8576"
+      ]
+     },
+     {
+      "id": "r4c2",
+      "x": 530,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8528",
+       "8516"
+      ]
+     },
+     {
+      "id": "r4c3",
+      "x": 875,
+      "y": 430,
+      "rot": 0,
+      "seats": [
+       "8555",
+       "8522"
+      ]
+     },
+     {
+      "id": "r5c1",
+      "x": 185,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       null,
+       "8552"
+      ]
+     },
+     {
+      "id": "r5c2",
+      "x": 530,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8525",
+       "8549"
+      ]
+     },
+     {
+      "id": "r5c3",
+      "x": 875,
+      "y": 590,
+      "rot": 0,
+      "seats": [
+       "8546",
+       "8573"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "dayPlan": [],
+ "reasons": {
+  "Pos": [
+   "on task",
+   "helped a peer",
+   "good question",
+   "strong effort"
+  ],
+  "Neg": [
+   "off task",
+   "chatting",
+   "phone",
+   "no Chromebook / materials",
+   "disrupting"
+  ],
+  "Part": [
+   "answered in class",
+   "board work",
+   "group work"
+  ],
+  "updatedAt": "2026-09-27T12:00:00.000Z"
+ },
+ "marks": [],
+ "rolls": [],
+ "lastOpened": {
+  "B1": {
+   "chart": "regular",
+   "t": "2026-09-27T12:00:00.000Z",
+   "device": "desktop"
+  },
+  "B3": {
+   "chart": "regular",
+   "t": "2026-09-27T12:00:00.000Z",
+   "device": "desktop"
+  },
+  "B4": {
+   "chart": "regular",
+   "t": "2026-09-27T12:00:00.000Z",
+   "device": "desktop"
+  },
+  "B5": {
+   "chart": "regular",
+   "t": "2026-09-27T12:00:00.000Z",
+   "device": "desktop"
+  }
+ }
+}
