@@ -4,7 +4,7 @@ A seating chart for the classroom, installed to the home screen of an Android ta
 
 - Several named charts per class; tables are objects that move and rotate, and names always stay upright.
 - Door view (from the back, board at the top) and board view (from the front).
-- Modes: Worksheet (3 · 2 · 1 · 0), Positive, Negative, Participation, Attendance. Absent is in every menu.
+- Modes: Worksheet (5 · 4 · 3 · 2 · 1 · 0, completion in fifths), Positive, Negative, Participation, Attendance. Absent is in every menu.
 - Badges carry a letter or digit as well as a colour. Day summary, attendance history, random picker that skips absent students.
 - Edit mode: drag and rotate tables, turn a table around, swap students, add or remove seats and tables; Save, Save as new, or Discard.
 
@@ -21,4 +21,4 @@ node tests/model.test.mjs
 node tests/test-server.mjs 8123 <folder with a copy of the sample data>
 ```
 
-The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`, `tests/touch.mjs` for finger taps) use `playwright-core` with a local Chrome.
+The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`, `tests/touch.mjs` for finger taps, `tests/dupes.mjs` for two devices marking the same student, `tests/scale.mjs` for the worksheet levels, `tests/signin.mjs` for quiet sign-in renewal) use `playwright-core` with a local Chrome.

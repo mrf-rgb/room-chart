@@ -23,13 +23,13 @@ const other = await page.evaluate(([ft]) => { const S = window.__app.S; const ch
 // worksheet
 await seat(ft, fi).click();
 const wb = await page.locator('.sheet-panel .sheet-buttons .sbtn').allTextContents();
-check('worksheet menu: 3 2 1 0 and Absent', wb.length === 5 && wb[4].includes('Absent'), wb.join('|'));
+check('worksheet menu: 5 4 3 2 1 0 and Absent', wb.length === 7 && wb[6].includes('Absent') && wb.slice(0, 6).map((x) => x[0]).join('') === '543210', wb.join('|'));
 await shot('worksheet-menu');
-await tapSheet('complete'); await page.waitForTimeout(150);
-check('worksheet chip 3 on the seat', await page.locator('.chip-t.c-w3').count() === 1);
-await seat(ft, fi).click(); await tapSheet('half');
+await tapSheet('all done'); await page.waitForTimeout(150);
+check('worksheet chip 5 on the seat', await page.locator('.chip-t.c-w5').count() === 1);
+await seat(ft, fi).click(); await tapSheet('about half');
 let st = await state();
-check('second worksheet tap changes the mark (no second mark)', st.marks === 1 && await page.locator('.chip-t.c-w2').count() === 1, JSON.stringify(st));
+check('second worksheet tap changes the mark (no second mark)', st.marks === 1 && await page.locator('.chip-t.c-w3').count() === 1, JSON.stringify(st));
 
 // reasons
 await page.locator('.mode.m-pos').click();
@@ -42,7 +42,7 @@ await shot('negative-menu');
 await tapSheet('phone');
 await page.locator('.mode.m-part').click();
 await seat(ft, fi).click(); await tapSheet('board work');
-check('badge: +2, minus, P, 2 chips', await page.locator('.chip-t.c-pos', { hasText: '+2' }).count() === 1 && await page.locator('.chip-t.c-neg').count() === 1 && await page.locator('.chip-t.c-part').count() === 1 && await page.locator('.chip-t.c-w2').count() === 1);
+check('badge: +2, minus, P, 2 chips', await page.locator('.chip-t.c-pos', { hasText: '+2' }).count() === 1 && await page.locator('.chip-t.c-neg').count() === 1 && await page.locator('.chip-t.c-part').count() === 1 && await page.locator('.chip-t.c-w3').count() === 1);
 await shot('badges');
 
 // attendance
@@ -55,7 +55,7 @@ check('second attendance tap undoes', !(await seat(...other).evaluate((e) => e.c
 await seat(...other).click(); await page.waitForTimeout(100);
 await page.locator('.mode.m-w').click();
 await seat(...other).click();
-check('worksheet round skips an absent student (offers Mark present only)', await page.locator('.sheet-panel', { hasText: 'Mark present' }).count() === 1 && await sheetBtn('complete').count() === 0);
+check('worksheet round skips an absent student (offers Mark present only)', await page.locator('.sheet-panel', { hasText: 'Mark present' }).count() === 1 && await sheetBtn('all done').count() === 0);
 await page.locator('.sheet-panel .cancel').click();
 await page.locator('.mode.m-pos').click();
 const third = [other[0], other[1] === 0 ? 1 : 0];

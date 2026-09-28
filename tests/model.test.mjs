@@ -4,8 +4,10 @@ import * as Mo from '../js/model.js';
 import { readFileSync } from 'node:fs';
 
 const sample = JSON.parse(readFileSync(new URL('../sample/sample-data.json', import.meta.url)));
-let n = 0;
-const test = (name, fn) => { fn(); n++; console.log('ok', name); };
+let n = 0, failed = 0;
+const test = (name, fn) => {
+  try { fn(); n++; console.log('ok', name); } catch (e) { failed++; console.log('FAIL', name, '-', e.message.split('\n')[0]); }
+};
 const mk = (id, over = {}) => ({ id, t: '2026-09-28T13:00:00.000Z', edited: '2026-09-28T13:00:00.000Z', date: '2026-09-28', class: 'B3', code: '7301', lesson: '', mode: 'Pos', value: '', reason: 'on task', note: '', device: 'a', ...over });
 
 test('sample: every active code once per chart', () => {
@@ -108,4 +110,146 @@ test('new chart from a template fills in class order', () => {
   assert.equal(ch.tables.length, sample.charts.B1[0].tables.length);
 });
 
-console.log(`\n${n} tests passed`);
+// ---------- one worksheet mark and one note per key, across devices ----------
+const T = (hm) => `2026-09-28T${hm}:00.000Z`;
+const W = (id, value, tap, edit, over = {}) => mk(id, { mode: 'W', reason: '', value, t: T(tap), edited: T(edit || tap), device: id.split('-')[0], ...over });
+const N = (id, note, tap, edit) => mk(id, { mode: 'Note', reason: '', note, t: T(tap), edited: T(edit || tap), device: id.split('-')[0] });
+const live = (d, mode = 'W') => d.marks.filter((m) => m.mode === mode && m.code === '7301' && !m.deleted);
+const withMarks = (...marks) => { const d = Mo.clone(sample); d.marks.push(...marks); return d; };
+
+test('two devices mark one student; the later edit is shown and is the one a tap changes', () => {
+  // As on 9/28: both marks in the file; the tablet corrected its own, earlier-tapped mark last.
+  const d = withMarks(W('tablet-1', '1', '13:00', '13:10'), W('phone-1', '3', '13:05'));
+  assert.equal(Mo.dayTally(d, 'B3', '2026-09-28')['7301'].W, '1', 'badge shows the latest edit');
+  assert.equal(Mo.worksheetMark(d, 'B3', '2026-09-28', '7301', '').id, 'tablet-1');
+  // The other way round: the phone's later tap is the latest edit.
+  const e = withMarks(W('tablet-1', '2', '13:00'), W('phone-1', '3', '13:05'));
+  assert.equal(Mo.worksheetMark(e, 'B3', '2026-09-28', '7301', '').id, 'phone-1', 'a tap edits the mark on screen');
+  // Through a merge, either order.
+  const a = withMarks(W('tablet-1', '1', '13:00', '13:10')), b = withMarks(W('phone-1', '3', '13:05'));
+  for (const m of [Mo.merge(a, b), Mo.merge(b, a)]) assert.equal(Mo.dayTally(m, 'B3', '2026-09-28')['7301'].W, '1');
+});
+
+test('merge leaves one live worksheet mark, the same both ways round, and never undoes a later edit', () => {
+  const a = withMarks(W('tablet-1', '2', '13:00')), b = withMarks(W('phone-1', '3', '13:05'));
+  const m1 = Mo.merge(a, b), m2 = Mo.merge(b, a);
+  assert.equal(Mo.fingerprint(m1), Mo.fingerprint(m2), 'merge(a, b) equals merge(b, a)');
+  assert.deepEqual(live(m1).map((m) => m.id), ['phone-1']);
+  const tomb = m1.marks.find((m) => m.id === 'tablet-1');
+  assert.equal(tomb.deleted, true);
+  assert.equal(tomb.edited, T('13:05'), "tombstone carries the keeper's edit time");
+  assert.equal(Mo.fingerprint(Mo.merge(m1, a)), Mo.fingerprint(m1), 'a stale copy merged again changes nothing');
+  // The tablet, not yet synced, edits its own mark after the phone's: that later edit wins everywhere.
+  const a2 = withMarks(W('tablet-1', '4', '13:00', '13:20'));
+  const r1 = Mo.merge(m1, a2), r2 = Mo.merge(a2, m1);
+  assert.equal(Mo.fingerprint(r1), Mo.fingerprint(r2));
+  assert.deepEqual(live(r1).map((m) => [m.id, m.value]), [['tablet-1', '4']]);
+  // Three devices, any grouping and order.
+  const c = withMarks(W('laptop-1', '5', '13:07'));
+  const fps = [Mo.merge(Mo.merge(a, b), c), Mo.merge(a, Mo.merge(b, c)), Mo.merge(c, Mo.merge(b, a)), Mo.merge(Mo.merge(c, a), b)].map(Mo.fingerprint);
+  assert.equal(new Set(fps).size, 1, 'same result whatever the order');
+  assert.deepEqual(live(Mo.merge(Mo.merge(a, b), c)).map((m) => m.id), ['laptop-1']);
+  // Same edit time on two devices: a stable choice, the same both ways.
+  const t1 = withMarks(W('tablet-1', '2', '13:00')), t2 = withMarks(W('phone-1', '3', '13:00'));
+  assert.equal(Mo.fingerprint(Mo.merge(t1, t2)), Mo.fingerprint(Mo.merge(t2, t1)));
+  assert.equal(live(Mo.merge(t1, t2)).length, 1);
+});
+
+test('notes: one note per student and day; the latest edit wins, the same both ways round', () => {
+  const a = withMarks(N('tablet-n', 'left early', '13:00', '13:30')), b = withMarks(N('phone-n', 'needs a pencil', '13:10'));
+  const m1 = Mo.merge(a, b), m2 = Mo.merge(b, a);
+  assert.equal(Mo.fingerprint(m1), Mo.fingerprint(m2));
+  assert.deepEqual(live(m1, 'Note').map((m) => m.id), ['tablet-n']);
+  const both = withMarks(N('tablet-n', 'left early', '13:00', '13:30'), N('phone-n', 'needs a pencil', '13:10'));
+  assert.equal(Mo.noteMark(both, 'B3', '2026-09-28', '7301').id, 'tablet-n', 'the day view opens the latest note');
+  assert.equal(Mo.dayTally(both, 'B3', '2026-09-28')['7301'].note, 'left early');
+});
+
+test('offline device marks a student who already has a mark: after sync the later edit wins', () => {
+  const file = withMarks(W('tablet-1', '3', '13:00', '13:10'));
+  const phone = withMarks(W('phone-1', '4', '13:15')); // offline: never saw the tablet's mark
+  const s1 = Mo.merge(phone, file), s2 = Mo.merge(file, phone);
+  assert.equal(Mo.fingerprint(s1), Mo.fingerprint(s2));
+  assert.deepEqual(live(s1).map((m) => [m.id, m.value]), [['phone-1', '4']]);
+  // The tablet corrects its mark after the phone's offline tap, before the phone is back.
+  const file2 = withMarks(W('tablet-1', '2', '13:00', '13:20'));
+  const s3 = Mo.merge(phone, file2);
+  assert.deepEqual(live(s3).map((m) => [m.id, m.value]), [['tablet-1', '2']]);
+  assert.equal(Mo.dayTally(s3, 'B3', '2026-09-28')['7301'].W, '2');
+  // Both devices converge on the same document.
+  const tabletNext = Mo.merge(file2, s3), phoneNext = Mo.merge(s3, phone);
+  assert.equal(Mo.fingerprint(tabletNext), Mo.fingerprint(phoneNext));
+});
+
+test('guard: tombstones never remove a live mark; different lessons keep their own mark', () => {
+  // The Grading Manager's tombstones carry a later edit time than the mark they left in place.
+  const keeper = W('phone-1', '3', '13:05', '13:43');
+  const tomb = W('tablet-1', '1', '13:00', '14:59', { deleted: true });
+  const m = Mo.merge(withMarks(keeper), withMarks(tomb));
+  assert.deepEqual(live(m).map((x) => x.id), ['phone-1']);
+  const two = Mo.merge(withMarks(W('tablet-1', '2', '13:00', '13:00', { lesson: 'L1' })), withMarks(W('phone-1', '3', '13:05', '13:05', { lesson: 'L2' })));
+  assert.equal(live(two).length, 2);
+});
+
+// Random runs. Without deletes, every merge order gives the same document. With deletes, one case
+// depends on order: a device deletes the mark on screen while another still holds an older duplicate
+// it has not synced; only live marks compete (ruling 1), so that duplicate may or may not come back
+// depending on which devices synced first. merge(a, b) still equals merge(b, a), and all devices
+// agree after one more sync.
+const orderDependentWithDeletes = { runs: 0, of: 0 };
+test('random runs: three devices tap, change, delete and sync in any order; one document, one live mark per key', () => {
+  let seed = 7;
+  const rnd = (k) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % k; };
+  const codes = ['7301', '7302', '7303'];
+  for (let run = 0; run < 600; run++) {
+    const deletes = run % 2 === 1;
+    let clock = 0;
+    const now = () => `2026-09-28T13:${String(Math.floor(clock / 60)).padStart(2, '0')}:${String(clock++ % 60).padStart(2, '0')}.000Z`;
+    const devs = ['tablet', 'phone', 'laptop'].map((name) => ({ name, doc: Mo.clone(sample), n: 0 }));
+    for (let step = 0; step < 14; step++) {
+      const d = devs[rnd(3)], code = codes[rnd(3)];
+      let op = rnd(5);
+      if (op === 3 && !deletes) op = 0;
+      if (op < 3) { // tap a level: change the mark on screen, or make one
+        const w = Mo.worksheetMark(d.doc, 'B3', '2026-09-28', code, '');
+        const t = now();
+        if (w) Object.assign(w, { value: String(rnd(6)), edited: t, device: d.name });
+        else d.doc.marks.push(mk(`${d.name}-${d.n++}`, { mode: 'W', reason: '', code, value: String(rnd(6)), t, edited: t, device: d.name }));
+      } else if (op === 3) { // delete the mark on screen
+        const w = Mo.worksheetMark(d.doc, 'B3', '2026-09-28', code, '');
+        if (w) Object.assign(w, { deleted: true, edited: now() });
+      } else { // sync with another device
+        const o = devs[rnd(3)];
+        const m = Mo.merge(d.doc, o.doc);
+        d.doc = Mo.clone(m); o.doc = Mo.clone(m);
+      }
+    }
+    const [a, b, c] = devs.map((x) => x.doc);
+    const orders = [Mo.merge(Mo.merge(a, b), c), Mo.merge(Mo.merge(b, a), c), Mo.merge(a, Mo.merge(b, c)),
+      Mo.merge(Mo.merge(c, b), a), Mo.merge(b, Mo.merge(c, a)), Mo.merge(Mo.merge(a, c), b)];
+    for (const [x, y] of [[a, b], [b, c], [a, c]]) assert.equal(Mo.fingerprint(Mo.merge(x, y)), Mo.fingerprint(Mo.merge(y, x)), `run ${run}: merge(a, b) differs from merge(b, a)`);
+    const distinct = new Set(orders.map(Mo.fingerprint)).size;
+    if (!deletes) assert.equal(distinct, 1, `run ${run}: merge order changed the result`);
+    else {
+      orderDependentWithDeletes.of++;
+      if (distinct > 1) orderDependentWithDeletes.runs++;
+      const next = orders.map((o) => Mo.fingerprint(orders.reduce((acc, p) => Mo.merge(acc, p), o)));
+      assert.equal(new Set(next).size, 1, `run ${run}: devices do not agree after one more sync`);
+    }
+    for (const o of orders) for (const code of codes) assert.ok(o.marks.filter((m) => m.mode === 'W' && m.code === code && !m.deleted).length <= 1, `run ${run}: two live marks`);
+    if (deletes) continue;
+    for (const code of codes) {
+      const l = orders[0].marks.filter((m) => m.mode === 'W' && m.code === code && !m.deleted);
+      assert.ok(l.length <= 1, `run ${run}: ${l.length} live marks for one student`);
+      // The mark shown is the latest edit among the live marks any device held.
+      const seen = devs.flatMap((x) => x.doc.marks).filter((m) => m.mode === 'W' && m.code === code);
+      const lastLive = seen.filter((m) => !m.deleted).sort((x, y) => x.edited.localeCompare(y.edited)).pop();
+      const lastAny = seen.slice().sort((x, y) => x.edited.localeCompare(y.edited)).pop();
+      if (l.length && lastAny && !lastAny.deleted) assert.equal(l[0].edited, lastLive.edited, `run ${run}: a later edit was undone`);
+    }
+  }
+});
+
+console.log(`(runs with deletes where the merge order mattered before one more sync: ${orderDependentWithDeletes.runs} of ${orderDependentWithDeletes.of})`);
+console.log(`\n${n} tests passed${failed ? `, ${failed} FAILED` : ''}`);
+if (failed) process.exitCode = 1;

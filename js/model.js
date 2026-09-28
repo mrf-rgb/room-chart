@@ -87,6 +87,41 @@ function mergeList(a, b, keyFn, field) {
   return [...map.values()];
 }
 
+// One worksheet mark per class, date, student and lesson, and one note per class, date and student.
+// Two devices can each make one before they sync. The live entry with the latest edit is kept;
+// the others become tombstones stamped with the keeper's edit time, so every device converges
+// (older app versions too, as they merge by id and later edit). Only live entries compete: a
+// tombstone never removes a live mark here. Tombstones already there for that key are raised to
+// the keeper's time (never lowered). A tombstone made or raised here keeps no value, note, reason
+// or device: two devices may hold different versions of it, and a blank one is the same whichever
+// was turned first, so the result is the same whatever order devices merge in.
+function markKey(m) {
+  if (m.mode === M.W) return `W|${m.class}|${m.date}|${m.code}|${m.lesson || ''}`;
+  if (m.mode === M.NOTE) return `N|${m.class}|${m.date}|${m.code}`;
+  return null;
+}
+
+function oneMarkPerKey(marks) {
+  const keep = new Map();
+  for (const m of marks) {
+    const k = !m.deleted && markKey(m);
+    if (k) keep.set(k, later(keep.get(k), m, 'edited'));
+  }
+  return marks.map((m) => {
+    const k = markKey(m), keeper = k && keep.get(k);
+    if (!keeper || keeper === m) return m;
+    if (m.deleted && (m.edited || '') >= keeper.edited) return m;
+    return { ...m, value: '', note: '', reason: '', device: '', deleted: true, edited: keeper.edited };
+  });
+}
+
+// The entry with the latest edit (ties as in merge).
+function latestEdit(list) {
+  let best;
+  for (const m of list) best = later(best, m, 'edited');
+  return best;
+}
+
 function mergeKeyed(a, b, field) {
   const out = {};
   const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
@@ -120,7 +155,7 @@ export function merge(a, b) {
   out.dayPlan.sort((x, y) => x.date.localeCompare(y.date) || x.class.localeCompare(y.class));
 
   out.reasons = later(a.reasons, b.reasons, 'updatedAt');
-  out.marks = mergeList(a.marks, b.marks, (m) => m.id, 'edited');
+  out.marks = oneMarkPerKey(mergeList(a.marks, b.marks, (m) => m.id, 'edited'));
   out.marks.sort((x, y) => (x.t || '').localeCompare(y.t || '') || x.id.localeCompare(y.id));
   out.rolls = mergeList(a.rolls, b.rolls, (r) => r.id, 't');
   out.rolls.sort((x, y) => (x.t || '').localeCompare(y.t || '') || x.id.localeCompare(y.id));
@@ -200,27 +235,36 @@ export function rollTaken(doc, cls, date) {
   return marksOf(doc, cls, date).length > 0;
 }
 
-// The worksheet mark: once per lesson per student per day.
+// The worksheet mark: once per lesson per student per day. If two devices each made one, the
+// latest edit is the one shown and the one a tap changes.
 export function worksheetMark(doc, cls, date, code, lesson) {
-  return marksOf(doc, cls, date).find((m) => m.mode === M.W && m.code === code && (m.lesson || '') === (lesson || ''));
+  return latestEdit(marksOf(doc, cls, date).filter((m) => m.mode === M.W && m.code === code && (m.lesson || '') === (lesson || '')));
 }
 
 export function noteMark(doc, cls, date, code) {
-  return marksOf(doc, cls, date).find((m) => m.mode === M.NOTE && m.code === code);
+  return latestEdit(marksOf(doc, cls, date).filter((m) => m.mode === M.NOTE && m.code === code));
 }
 
-// Per-student tally for the badge and the day summary.
+// Per-student tally for the badge and the day summary. Worksheet: the latest edit for today's
+// lesson, or, with none for it, the latest edit under another label.
 export function dayTally(doc, cls, date) {
   const lesson = lessonFor(doc, cls, date);
   const absent = absentCodes(doc, cls, date);
   const t = {};
   const get = (code) => (t[code] ||= { Pos: 0, Neg: 0, Part: 0, W: null, absent: false, note: '' });
+  const w = new Map(), wOther = new Map(), note = new Map();
   for (const m of marksOf(doc, cls, date)) {
     const e = get(m.code);
     if (m.mode === M.POS || m.mode === M.NEG || m.mode === M.PART) e[m.mode]++;
-    else if (m.mode === M.W && (m.lesson || '') === lesson) e.W = m.value;
-    else if (m.mode === M.W && e.W === null) e.W = m.value;
-    else if (m.mode === M.NOTE) e.note = m.note || '';
+    else if (m.mode === M.W) {
+      const into = (m.lesson || '') === lesson ? w : wOther;
+      into.set(m.code, later(into.get(m.code), m, 'edited'));
+    } else if (m.mode === M.NOTE) note.set(m.code, later(note.get(m.code), m, 'edited'));
+  }
+  for (const [code, e] of Object.entries(t)) {
+    const wm = w.get(code) || wOther.get(code);
+    if (wm) e.W = wm.value;
+    if (note.has(code)) e.note = note.get(code).note || '';
   }
   for (const code of absent) get(code).absent = true;
   return t;

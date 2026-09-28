@@ -12,7 +12,9 @@ const MODES = [
   { id: 'Att', label: 'Attendance', short: 'Att', letter: 'A' },
 ];
 const MODE_NAME = { W: 'Worksheet', Pos: 'Positive', Neg: 'Negative', Part: 'Participation', Abs: 'Attendance', Note: 'Note' };
-const W_LABEL = { 3: 'complete', 2: 'half', 1: 'started', 0: 'nothing' };
+// Worksheet completion in fifths. Marks made before 1.0.3 (0-3) still show as their own digit.
+const W_LEVELS = ['5', '4', '3', '2', '1', '0'];
+const W_LABEL = { 5: 'all done', 4: 'most', 3: 'about half', 2: 'some', 1: 'started', 0: 'nothing' };
 
 const S = {
   doc: null, meta: null,
@@ -99,7 +101,7 @@ function sheet(title, subtitle, buttons, opts = {}) {
   const panel = h('div', { class: 'sheet-panel' + (opts.wide ? ' wide' : '') },
     h('div', { class: 'sheet-title', text: title }),
     subtitle ? h('div', { class: 'sheet-sub', text: subtitle }) : null,
-    h('div', { class: 'sheet-buttons' + (opts.grid ? ' grid' : '') },
+    h('div', { class: 'sheet-buttons' + (opts.grid ? ' grid' : '') + (opts.levels ? ' levels' : '') },
       buttons.map((b) => h('button', {
         class: 'sbtn ' + (b.cls || ''), 'aria-pressed': b.current ? 'true' : null,
         onclick: () => { closeSheet(); b.onClick && b.onClick(); },
@@ -188,9 +190,9 @@ function worksheetMenu(code) {
   const existing = Mo.worksheetMark(S.doc, cls(), today(), code, lesson);
   const pickW = (v) => existing ? editMark(existing, { value: v }) : addMark(newMark(Mo.M.W, code, { value: v }));
   sheet(nameOf(code), `Worksheet${lesson ? ' · ' + lesson : ''}${existing ? ' · now ' + existing.value : ''}`, [
-    ...['3', '2', '1', '0'].map((v) => ({ label: W_LABEL[v], letter: v, cls: 'c-w' + v, current: existing && existing.value === v, onClick: () => pickW(v) })),
+    ...W_LEVELS.map((v) => ({ label: W_LABEL[v], letter: v, cls: 'c-w' + v, current: existing && existing.value === v, onClick: () => pickW(v) })),
     { label: 'Absent', letter: 'A', cls: 'c-abs', onClick: () => setAbsent(code, true) },
-  ], { grid: true });
+  ], { levels: true });
 }
 
 function reasonMenu(mode, code) {
@@ -232,7 +234,7 @@ function onSeatLong(ti, si) {
 // ---------- day view (long press) ----------
 
 function markLabel(m) {
-  if (m.mode === Mo.M.W) return `Worksheet ${m.value} (${W_LABEL[m.value]})${m.lesson ? ' · ' + m.lesson : ''}`;
+  if (m.mode === Mo.M.W) return `Worksheet ${m.value}${W_LABEL[m.value] ? ' (' + W_LABEL[m.value] + ')' : ''}${m.lesson ? ' · ' + m.lesson : ''}`;
   if (m.mode === Mo.M.ABS) return m.value === 'absent' ? 'Marked absent' : 'Marked present';
   return `${MODE_NAME[m.mode]}: ${m.reason}`;
 }
@@ -292,9 +294,9 @@ function dayView(code) {
 
 function changeMark(m, after) {
   if (m.mode === Mo.M.W) {
-    sheet('Change worksheet mark', null, ['3', '2', '1', '0'].map((v) => ({
+    sheet('Change worksheet mark', null, W_LEVELS.map((v) => ({
       label: W_LABEL[v], letter: v, cls: 'c-w' + v, current: m.value === v, onClick: async () => { await editMark(m, { value: v }); after(); },
-    })), { grid: true });
+    })), { levels: true });
   } else {
     const letter = { Pos: '+', Neg: '−', Part: 'P' }[m.mode];
     sheet(`Change ${MODE_NAME[m.mode].toLowerCase()} reason`, null, (S.doc.reasons[m.mode] || []).map((r) => ({
@@ -549,9 +551,9 @@ function settings() {
       : 'Not linked yet.' }),
     ...(S.lastError ? [h('p', { class: 'warn', text: 'Last problem: ' + S.lastError })] : []),
     h('div', { class: 'btnrow' },
-      h('button', { class: 'tbtn primary', text: linked ? 'Reconnect' : 'Connect Google Drive', onclick: () => connect(false) }),
-      h('button', { class: 'tbtn', text: 'Pick the files again', onclick: () => connect(true) }),
-      linked ? h('button', { class: 'tbtn', text: 'Sync now', onclick: () => sync(true) }) : null),
+      h('button', { class: 'tbtn primary', 'data-signin': true, text: linked ? 'Reconnect' : 'Connect Google Drive', onclick: () => connect(false) }),
+      h('button', { class: 'tbtn', 'data-signin': true, text: 'Pick the files again', onclick: () => connect(true) }),
+      linked ? h('button', { class: 'tbtn', 'data-signin': true, text: 'Sync now', onclick: () => sync(true) }) : null),
     h('h3', { text: 'This device' }),
   );
   const dn = h('input', { class: 'pinput', value: S.meta.deviceName || '' });
@@ -586,6 +588,7 @@ async function connect(forcePick) {
   try {
     if (!drive.configured()) return toast('Google setup is not finished yet', 3500);
     await drive.signIn(true, S.meta.email);
+    signedIn();
     let data = forcePick ? [] : await drive.find(FILES.data);
     let inbox = forcePick ? [] : await drive.find(FILES.inbox);
     if (!data.length || !inbox.length) {
@@ -602,6 +605,7 @@ async function connect(forcePick) {
     S.meta.demo = false;
     S.meta.dataId = data[0].id;
     S.meta.inboxId = inbox.length ? inbox[0].id : null;
+    await learnAccount();
     if (!S.meta.cls || !S.doc.classes.some((c) => c.id === S.meta.cls)) S.meta.cls = (S.doc.classes[0] || {}).id;
     await save(false);
     closeModal(); hideWelcome();
@@ -611,6 +615,49 @@ async function connect(forcePick) {
     S.lastError = e.message; renderSync();
     toast('Could not connect: ' + e.message, 4000);
   }
+}
+
+// ---------- quiet sign-in renewal ----------
+// The access token runs out after about an hour and is lost when the app is closed. On a tap in its
+// last ten minutes, or once it has run out, the app asks Google for a new one with no screen (the
+// browser opens Google's window only during a tap). Only when Google needs the teacher does the
+// pill ask for a sign-in. Taps stay on the device either way and sync once there is a token.
+const RENEW_BEFORE = 10 * 60000;
+let quietAfter = 0;         // no quiet request before this time (after a failed one)
+let needsTeacher = false;   // Google answered that it needs the teacher: the pill asks for a sign-in
+
+function signedIn() { needsTeacher = false; quietAfter = 0; }
+
+function canRenew() {
+  return !!(S.meta && !S.meta.demo && S.meta.dataId && navigator.onLine && drive.configured() && !drive.pending &&
+    drive.expiresSoon(RENEW_BEFORE) && Date.now() >= quietAfter);
+}
+
+async function renewQuietly() {
+  if (!canRenew()) return;
+  quietAfter = Date.now() + 60000;
+  try {
+    await drive.signIn(false, S.meta.email);
+    signedIn();
+    await learnAccount();
+    sync(false);
+  } catch (e) {
+    if (e.code === 'interaction') { needsTeacher = true; quietAfter = Date.now() + 10 * 60000; }
+    if (!drive.hasToken()) { S.status = needsTeacher ? 'signin' : 'renew'; renderSync(); }
+  }
+}
+
+// Every tap is a chance to renew; the pill and the Settings buttons sign in themselves.
+function onGesture(e) {
+  if (e.target && e.target.closest && e.target.closest('[data-signin]')) return;
+  if (navigator.userActivation && !navigator.userActivation.isActive) return;
+  renewQuietly();
+}
+
+// The account's address, kept as the hint so Google does not ask which account.
+async function learnAccount() {
+  if (S.meta.email || !drive.hasToken()) return;
+  try { S.meta.email = await drive.account(); if (S.meta.email) await save(false); } catch (e) { /* the hint is optional */ }
 }
 
 let syncTimer = null;
@@ -624,9 +671,17 @@ async function sync(interactive) {
   if (!navigator.onLine) { S.status = 'offline'; return renderSync(); }
   S.syncing = true; renderSync();
   try {
+    if (!drive.hasToken() && drive.pending) await drive.pending.catch(() => {});
     if (!drive.hasToken()) {
-      if (!interactive) { S.status = 'signin'; return; }
+      if (!interactive) {
+        S.status = needsTeacher ? 'signin' : 'renew';
+        // Straight after a tap the browser still allows Google's window.
+        if (navigator.userActivation && navigator.userActivation.isActive) setTimeout(renewQuietly, 0);
+        return;
+      }
       await drive.signIn(true, S.meta.email);
+      signedIn();
+      await learnAccount();
     }
     const remote = Mo.normalize(await drive.read(S.meta.dataId));
     let merged = Mo.merge(S.doc, remote);
@@ -642,7 +697,8 @@ async function sync(interactive) {
     if (!S.lastError.startsWith('inbox')) S.lastError = '';
     await save(false);
   } catch (e) {
-    S.status = e.code === 'auth' ? 'signin' : 'error';
+    if (e.code === 'interaction') needsTeacher = true;
+    S.status = ['auth', 'interaction', 'popup'].includes(e.code) ? (needsTeacher ? 'signin' : 'renew') : 'error';
     S.lastError = e.message;
   } finally {
     S.syncing = false;
@@ -661,6 +717,7 @@ function renderSync() {
   else if (S.syncing) text = 'Syncing…';
   else if (!navigator.onLine) { text = `Offline · ${n} waiting`; cls2 = 'warn'; }
   else if (S.status === 'signin') { text = `Tap to sign in · ${n} waiting`; cls2 = 'warn'; }
+  else if (S.status === 'renew') { text = `Tap to sync · ${n} waiting`; cls2 = 'warn'; }
   else if (S.status === 'error') { text = `Sync problem · ${n} waiting`; cls2 = 'bad'; }
   else if (n > 0) { text = `${n} mark${n === 1 ? '' : 's'} waiting`; cls2 = 'warn'; }
   else text = 'Synced ✓';
@@ -807,6 +864,10 @@ function wire() {
   $('e-del').onclick = () => editAction('del');
   $('e-menu').onclick = chartMenu;
   document.addEventListener('pointerdown', () => { presses++; }, true);
+  document.addEventListener('pointerup', onGesture, true);
+  document.addEventListener('keydown', onGesture, true);
+  $('sync').dataset.signin = '';
+  $('w-connect').dataset.signin = '';
   guardClicks($('sheet')); guardClicks($('modal'));
   $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeSheet(); });
   window.addEventListener('online', () => sync(false));
@@ -837,6 +898,8 @@ async function boot() {
   }
   if (S.doc) {
     if (!S.meta.cls || !S.doc.classes.some((c) => c.id === S.meta.cls)) S.meta.cls = (S.doc.classes[0] || {}).id;
+    // Load Google's sign-in code now, so a tap can ask for a token at once.
+    if (S.meta.dataId && !S.meta.demo && drive.configured()) drive.init().catch(() => {});
     renderAll();
     sync(false);
   }
@@ -845,5 +908,5 @@ async function boot() {
   }
 }
 
-window.__app = { S, sync, Mo }; // used by the test harness
+window.__app = { S, sync, Mo, drive }; // used by the test harness
 boot();
