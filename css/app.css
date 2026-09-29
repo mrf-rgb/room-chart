@@ -67,6 +67,52 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .fab { position: absolute; right: 12px; bottom: 12px; min-width: 56px; min-height: 48px; border-radius: 24px; border: 2px solid var(--line); background: #fff; font-weight: 700; opacity: .9; }
 body.editing .fab { bottom: 96px; }
 
+/* ---------- screen layout: controls on top, or in a column on the left; a tab hides them ---------- */
+.ctl-tab { position: absolute; z-index: 5; top: 0; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 72px; height: 44px; padding: 0 14px; border: 0; border-radius: 0 0 14px 14px; background: var(--head); color: #fff;
+  font-size: 16px; font-weight: 800; cursor: pointer; touch-action: manipulation; box-shadow: 0 2px 6px rgba(15,23,42,.3); }
+.ctl-tab[aria-disabled="true"] .tchev { opacity: .35; }
+.tchev { line-height: 1; }
+.tmode { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; font-size: 20px; font-weight: 900; color: #fff; background: #33405e; }
+.tmode.m-w { background: var(--w5); } .tmode.m-pos { background: var(--pos); } .tmode.m-neg { background: var(--neg); }
+.tmode.m-part { background: var(--part); } .tmode.m-att { background: var(--abs); }
+.tdot { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px #fff; }
+.tdot.warn { background: #f59e0b; } .tdot.bad { background: #dc2626; }
+
+/* Landscape: one column on the left, in the top bar's order, with the mode bar as a vertical list.
+   A fixed width, so the chart's space never changes with the pill's text. */
+body.lay-side { flex-direction: row; --side-w: 216px; }
+body.lay-side .ctl-tab { top: 50%; left: 0; transform: translateY(-50%); flex-direction: column; width: 44px; min-width: 0; height: auto; min-height: 72px;
+  padding: 14px 0; border-radius: 0 14px 14px 0; }
+body.lay-side #top { flex: none; width: var(--side-w); height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-content: start; gap: 6px;
+  padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+body.lay-side #top > .bar:not(.editbar) { display: contents; }
+body.lay-side :where(#top > .bar:not(.editbar) > *, #modes, #editbar) { grid-column: 1 / -1; min-width: 0; }
+body.lay-side .spacer { display: none; }
+body.lay-side #cls { order: 1; } body.lay-side #chart { order: 2; } body.lay-side #view { order: 3; } body.lay-side #sync { order: 4; }
+body.lay-side #lesson { order: 5; } body.lay-side #date { order: 6; } body.lay-side #modes, body.lay-side #editbar { order: 7; }
+body.lay-side #pick { order: 8; } body.lay-side #summary { order: 9; } body.lay-side #history { order: 10; }
+body.lay-side #edit { order: 11; } body.lay-side #settings { order: 12; }
+body.lay-side #pick, body.lay-side #summary, body.lay-side #history { grid-column: span 2; min-width: 0; padding: 0 4px; }
+body.lay-side #edit { grid-column: span 4; } body.lay-side #settings { grid-column: span 2; min-width: 0; }
+body.lay-side #history .long { display: none; } body.lay-side #history .short { display: inline; }
+body.lay-side #top select { width: 100%; }
+body.lay-side .pill { white-space: normal; line-height: 1.15; padding: 4px 10px; max-width: none; }
+body.lay-side .lesson { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.lay-side .date { font-size: 15px; padding: 0 4px; }
+body.lay-side #modes { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+body.lay-side .mode { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 0 8px; min-height: var(--tap); font-size: inherit; }
+body.lay-side .mode .mlong { display: inline; } body.lay-side .mode .mshort { display: none; }
+body.lay-side .editbar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; padding: 8px; border: 3px solid #f59e0b; border-radius: 12px; }
+body.lay-side .editbar .edit-name { grid-column: 1 / -1; margin: 0; overflow-wrap: anywhere; }
+body.lay-side .editbar .tbtn { min-width: 0; padding: 2px 4px; white-space: normal; line-height: 1.1; }
+body.lay-side .editbar #e-del, body.lay-side .editbar #e-menu { grid-column: 1 / -1; }
+/* Hidden: the chart fills the screen; only the tab stays. */
+body.ctl-hidden #top { display: none; }
+body.ctl-hidden.lay-top #stage { margin-top: env(safe-area-inset-top, 0px); }
+body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
+
 .room { fill: #f8fafc; stroke: var(--line); stroke-width: 2; }
 .board { fill: #1f2a44; }
 .wall-label { font-size: 22px; font-weight: 800; text-anchor: middle; fill: var(--muted); letter-spacing: 2px; pointer-events: none; }
@@ -207,3 +253,14 @@ body.editing .fab { bottom: 96px; }
 }
 @media (max-width: 380px) { .mshort { display: none; }
 .short { display: none; } }
+/* Phone on its side: a narrower, tighter column; it scrolls inside itself when it must, the chart never does. */
+@media (max-height: 500px) {
+  body.lay-side { --side-w: 190px; }
+  body.lay-side #top { font-size: 16px; gap: 4px; }
+  body.lay-side #top select, body.lay-side .tbtn, body.lay-side .pill, body.lay-side .lesson { min-height: 40px; }
+  body.lay-side .pill { font-size: 14px; }
+  body.lay-side .lesson { font-size: 15px; padding: 0 8px; }
+  body.lay-side .date { display: none; }
+  body.lay-side #modes { gap: 4px; padding: 2px 0; }
+  body.lay-side .mletter { width: 28px; height: 28px; font-size: 20px; }
+}

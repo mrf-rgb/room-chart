@@ -21,7 +21,7 @@ const S = {
   draft: null, draftNew: false, draftFp: '',
   sel: null, selTable: null, trayPick: null,
   picked: null, recentPicks: {},
-  syncing: false, status: '', lastError: '',
+  syncing: false, status: '', lastError: '', syncLevel: 'ok',
 };
 const drive = makeDrive();
 const $ = (id) => document.getElementById(id);
@@ -559,7 +559,7 @@ function settings() {
   const dn = h('input', { class: 'pinput', value: S.meta.deviceName || '' });
   body.append(h('div', { class: 'dv-row' }, dn, h('button', { class: 'tbtn', text: 'Save', onclick: async () => {
     S.meta.deviceName = dn.value.trim() || S.meta.deviceName; await save(false); toast('Saved');
-  } })), h('p', { class: 'muted', text: `Device id ${S.meta.device} · version ${VERSION}` }));
+  } })), ...controlsChoice(), h('p', { class: 'muted', text: `Device id ${S.meta.device} · version ${VERSION}` }));
 
   body.append(h('h3', { text: 'Reason lists (one per line)' }));
   const tas = {};
@@ -580,6 +580,66 @@ function settings() {
     document.body.append(a); a.click(); a.remove();
   } }));
   modal('Settings', body);
+}
+
+function controlsChoice() {
+  const row = h('div', { class: 'btnrow' });
+  const draw = () => {
+    row.textContent = '';
+    for (const [v, label] of CONTROLS) {
+      row.append(h('button', { class: 'tbtn', 'data-controls': v, 'aria-pressed': (S.meta.controls || 'auto') === v ? 'true' : 'false', text: label,
+        onclick: async () => { S.meta.controls = v; applyLayout(); draw(); await save(false); } }));
+    }
+  };
+  draw();
+  return [h('label', { class: 'lbl', text: 'Controls' }), row,
+    h('p', { class: 'muted', text: 'Automatic: on top when the screen is upright, in a column on the left when it is sideways.' })];
+}
+
+// ---------- screen layout ----------
+// Controls on top (portrait) or in a column on the left (landscape), and a tab on their edge that
+// hides and shows them. Both are kept per device. The chart refits itself whenever its space changes.
+const CONTROLS = [['auto', 'Automatic'], ['top', 'Always on top'], ['side', 'Always on the left']];
+
+function controlsOnSide() {
+  const c = S.meta && S.meta.controls;
+  if (c === 'top') return false;
+  if (c === 'side') return true;
+  return window.innerWidth > window.innerHeight;
+}
+
+function applyLayout() {
+  const b = document.body;
+  const side = controlsOnSide();
+  const hidden = !!(S.meta && S.meta.ctlHidden) && !S.draft; // Edit mode always shows the controls
+  b.classList.toggle('lay-side', side);
+  b.classList.toggle('lay-top', !side);
+  b.classList.toggle('ctl-hidden', hidden);
+  renderTab();
+}
+
+function renderTab() {
+  const tab = $('ctl-tab');
+  if (!S.meta) return;
+  const side = document.body.classList.contains('lay-side');
+  const hidden = document.body.classList.contains('ctl-hidden');
+  const m = MODES.find((x) => x.id === S.meta.mode) || MODES[0];
+  tab.textContent = '';
+  if (hidden) tab.append(h('span', { class: 'tmode m-' + m.id.toLowerCase(), text: m.letter }), h('span', { class: 'tdot ' + S.syncLevel }));
+  tab.append(h('span', { class: 'tchev', text: side ? (hidden ? '▶' : '◀') : (hidden ? '▼' : '▲') }));
+  tab.dataset.mode = m.id;
+  tab.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+  tab.setAttribute('aria-disabled', S.draft ? 'true' : 'false');
+  tab.setAttribute('aria-label', hidden ? `Show the controls (mode: ${m.label})` : 'Hide the controls');
+  tab.title = hidden ? `${m.label} · ${$('sync').textContent}` : 'Hide the controls';
+}
+
+async function toggleControls() {
+  if (!S.meta) return;
+  if (S.draft) return toast('The controls stay open while editing');
+  S.meta.ctlHidden = !S.meta.ctlHidden;
+  applyLayout();
+  await save(false);
 }
 
 // ---------- Drive link and sync ----------
@@ -724,6 +784,8 @@ function renderSync() {
   b.textContent = text;
   b.className = 'pill ' + cls2;
   b.title = text;
+  S.syncLevel = cls2 || 'ok'; // the dot on the tab while the controls are hidden
+  renderTab();
 }
 
 function renderTop() {
@@ -796,7 +858,7 @@ function renderEdit() {
 
 function renderAll() {
   if (!S.doc) return;
-  renderTop(); renderModes(); renderEdit(); renderChart();
+  applyLayout(); renderTop(); renderModes(); renderEdit(); renderChart();
 }
 
 // ---------- welcome ----------
@@ -824,7 +886,7 @@ async function loadSample() {
 
 function wire() {
   view = new ChartView($('svg'), {
-    onSeatTap, onSeatLong,
+    onSeatTap, onSeatLong, avoid: () => $('ctl-tab'),
     onBgTap: () => { if (S.draft) { S.sel = null; S.selTable = null; S.trayPick = null; renderAll(); } },
     onTableSelect: (t) => { S.selTable = t; S.sel = null; renderEdit(); renderChart(); },
     onTableDrag: (t, x, y) => { const tb = S.draft.tables[t]; tb.x = x; tb.y = y; clampTable(tb); renderChart(); },
@@ -850,6 +912,9 @@ function wire() {
   $('history').onclick = history;
   $('settings').onclick = settings;
   $('fit').onclick = () => view.fit();
+  $('ctl-tab').onclick = toggleControls;
+  $('ctl-tab').addEventListener('contextmenu', (e) => e.preventDefault());
+  window.addEventListener('resize', applyLayout); // rotation: the layout follows at once
   $('edit').onclick = () => {
     if (S.draft) return finishEdit();
     const ch = currentChart();
@@ -878,6 +943,7 @@ function wire() {
 }
 
 async function boot() {
+  applyLayout();
   wire();
   S.meta = (await store.get('meta')) || {};
   if (!S.meta.device) {
@@ -886,7 +952,8 @@ async function boot() {
     S.meta.deviceName = kind;
   }
   S.meta.chartBy ||= {}; S.meta.remoteIndex ||= {};
-  S.meta.view ||= 'door'; S.meta.mode ||= 'W';
+  S.meta.view ||= 'door'; S.meta.mode ||= 'W'; S.meta.controls ||= 'auto';
+  applyLayout();
   const doc = await store.get('doc');
   S.doc = doc ? Mo.normalize(doc) : null;
   store.persist();
@@ -908,5 +975,5 @@ async function boot() {
   }
 }
 
-window.__app = { S, sync, Mo, drive }; // used by the test harness
+window.__app = { S, sync, Mo, drive, get view() { return view; } }; // used by the test harness
 boot();

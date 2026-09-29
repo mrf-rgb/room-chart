@@ -6,6 +6,7 @@ import { SEAT_W, SEAT_H, seatCenters } from './model.js';
 const NS = 'http://www.w3.org/2000/svg';
 const PAD_X = 20, PAD_TOP = 70, PAD_BOTTOM = 70;
 const LONG_MS = 550, MOVE_PX = 10;
+const TAB_GAP = 12; // room kept clear beside the controls' tab, so a finger on a seat is not taken for the tab
 
 function el(name, attrs = {}, parent) {
   const e = document.createElementNS(NS, name);
@@ -69,8 +70,21 @@ export class ChartView {
     const b = this.svg.getBoundingClientRect();
     if (!b.width || !b.height) return;
     const ex = this.extent();
-    const k = Math.min(b.width / ex.w, b.height / ex.h);
-    this.z = { k, tx: (b.width - ex.w * k) / 2, ty: (b.height - ex.h * k) / 2 };
+    let k = Math.min(b.width / ex.w, b.height / ex.h);
+    let tx = (b.width - ex.w * k) / 2, ty = (b.height - ex.h * k) / 2;
+    // The controls' tab sits on the chart's top or left edge: keep the room clear of it.
+    const tab = this.h.avoid && this.h.avoid();
+    const a = tab && tab.offsetParent ? tab.getBoundingClientRect() : null;
+    if (a && a.width) {
+      if (a.left <= b.left + 1 && a.right > b.left && tx < a.right - b.left + TAB_GAP) {
+        const left = a.right - b.left + TAB_GAP, w = b.width - left;
+        k = Math.min(w / ex.w, b.height / ex.h); tx = left + (w - ex.w * k) / 2; ty = (b.height - ex.h * k) / 2;
+      } else if (a.top <= b.top + 1 && a.bottom > b.top && ty < a.bottom - b.top + TAB_GAP) {
+        const top = a.bottom - b.top + TAB_GAP, hh = b.height - top;
+        k = Math.min(b.width / ex.w, hh / ex.h); tx = (b.width - ex.w * k) / 2; ty = top + (hh - ex.h * k) / 2;
+      }
+    }
+    this.z = { k, tx, ty };
     this.fitted = true;
     this.applyZoom();
   }

@@ -114,7 +114,10 @@ await closeAll();
   const dvb = await page.evaluate(([top, bottom]) => [...document.querySelectorAll('.dayview button')]
     .filter((b) => /Mark absent|Delete/.test(b.textContent))
     .map((e) => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, text: e.textContent }; })
-    .filter((b) => b.y > top + 40 && b.y < bottom - 40), [sv.y, sv.y + sv.height]);
+    .filter((b) => b.y > top + 40 && b.y < bottom - 40)
+    // A point on the chart: clear of the controls' tab, which a finger close by would hit.
+    .filter((b) => { const t = document.getElementById('ctl-tab'); if (!t) return true; const r = t.getBoundingClientRect();
+      return b.x < r.left - 30 || b.x > r.right + 30 || b.y < r.top - 30 || b.y > r.bottom + 30; }), [sv.y, sv.y + sv.height]);
   await closeAll();
   if (!dvb.length) check('B: long press under a day-view button (none inside the chart area)', false);
   else {
