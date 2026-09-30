@@ -1,4 +1,11 @@
 import { chromium } from 'playwright-core';
+// A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
+// class. Works on either version: the lesson button opens a text box, or a list with 'Something else…'.
+async function setLesson(page, label) {
+  await page.locator('#lesson').click(); await page.waitForTimeout(150);
+  if (!(await page.locator('.sheet-panel input').count())) { await page.locator('.sheet-panel .sbtn', { hasText: 'Something else' }).click(); await page.waitForTimeout(150); }
+  await page.locator('.sheet-panel input').fill(label); await page.locator('.sheet-panel .sbtn.primary').click(); await page.waitForTimeout(150);
+}
 const S = process.env.S;
 const VW = Number(process.env.VW || 1280), VH = Number(process.env.VH || 800), TAG = process.env.TAG || 'tablet';
 const URL = 'http://localhost:8123/?nosw=1&testdrive=http://localhost:8123/api';
@@ -17,6 +24,9 @@ const sheetBtn = (text) => page.locator('.sheet-panel .sbtn', { hasText: text })
 const tapSheet = async (text) => { await sheetBtn(text).click(); await page.waitForTimeout(150); };
 
 await page.selectOption('#cls', 'B3'); await page.waitForTimeout(300);
+
+
+await setLesson(page, 'Lesson A');
 const [ft, fi] = await page.evaluate(() => { const S = window.__app.S; const ch = S.doc.charts.B3.find(c => c.id === (S.meta.chartBy.B3 || S.doc.lastOpened.B3.chart)); for (let t = 0; t < ch.tables.length; t++) for (let i = 0; i < ch.tables[t].seats.length; i++) if (ch.tables[t].seats[i]) return [t, i]; });
 const other = await page.evaluate(([ft]) => { const S = window.__app.S; const ch = S.doc.charts.B3.find(c => c.id === (S.meta.chartBy.B3 || S.doc.lastOpened.B3.chart)); for (let t = ft + 1; t < ch.tables.length; t++) for (let i = 0; i < ch.tables[t].seats.length; i++) if (ch.tables[t].seats[i]) return [t, i]; }, [ft]);
 
@@ -98,8 +108,7 @@ check('random picker never picks an absent student (40 picks)', !pickedAbsent &&
 await shot('picker');
 
 // lesson
-await page.locator('#lesson').click(); await page.locator('.sheet-panel input').fill('M8-U1-D13'); await page.locator('.sheet-panel .sbtn.primary').click();
-await page.waitForTimeout(100);
+await setLesson(page, 'M8-U1-D13');
 const lessonOk = await page.evaluate(() => window.__app.S.doc.marks.filter(m => m.class === 'B3').every(m => m.lesson === 'M8-U1-D13'));
 check("lesson label set for the day and on today's marks", lessonOk && (await page.locator('#lesson').textContent()) === 'M8-U1-D13');
 

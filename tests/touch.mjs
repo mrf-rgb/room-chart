@@ -4,6 +4,13 @@
 // 2. A tap (or long press) that opens a menu or the day view cannot also press a button in it:
 //    the click that follows the finger's release lands on the new menu, and must be ignored.
 import { chromium } from 'playwright-core';
+// A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
+// class. Works on either version: the lesson button opens a text box, or a list with 'Something else…'.
+async function setLesson(page, label) {
+  await page.locator('#lesson').click(); await page.waitForTimeout(150);
+  if (!(await page.locator('.sheet-panel input').count())) { await page.locator('.sheet-panel .sbtn', { hasText: 'Something else' }).click(); await page.waitForTimeout(150); }
+  await page.locator('.sheet-panel input').fill(label); await page.locator('.sheet-panel .sbtn.primary').click(); await page.waitForTimeout(150);
+}
 const S = process.env.S;
 const VW = Number(process.env.VW || 390), VH = Number(process.env.VH || 844), TAG = process.env.TAG || 'phone';
 const URL = 'http://localhost:8123/?nosw=1&testdrive=http://localhost:8123/api';
@@ -16,6 +23,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(URL); await page.waitForTimeout(1200);
 await page.selectOption('#cls', 'B3'); await page.waitForTimeout(300);
+
+await setLesson(page, 'Lesson A');
 const cdp = await ctx.newCDPSession(page);
 
 // What the finger's events hit, for the report.

@@ -245,8 +245,27 @@ export function noteMark(doc, cls, date, code) {
   return latestEdit(marksOf(doc, cls, date).filter((m) => m.mode === M.NOTE && m.code === code));
 }
 
-// Per-student tally for the badge and the day summary. Worksheet: the latest edit for today's
-// lesson, or, with none for it, the latest edit under another label.
+// Worksheet completion belongs to the lesson, not the day. When a lesson runs into a new day, each
+// student starts from their latest-edited mark for that lesson and class on an earlier day. A blank
+// lesson never carries. A change on the new day is a new mark dated that day; earlier days' marks
+// stay as they were. One pass, keyed by student.
+function carriedMarks(doc, cls, date, lesson) {
+  const out = new Map();
+  if (!lesson) return out;
+  for (const m of doc.marks) {
+    if (m.mode !== M.W || m.deleted || m.class !== cls || m.date >= date || (m.lesson || '') !== lesson) continue;
+    out.set(m.code, later(out.get(m.code), m, 'edited'));
+  }
+  return out;
+}
+
+export function worksheetCarry(doc, cls, date, code, lesson) {
+  return carriedMarks(doc, cls, date, lesson).get(code);
+}
+
+// Per-student tally for the badge and the day summary. Worksheet, for today's lesson: today's latest
+// edit; with none, the value carried from an earlier day (flagged `Wcarried`, with its date in
+// `Wfrom`); with neither, today's latest edit under another label.
 export function dayTally(doc, cls, date) {
   const lesson = lessonFor(doc, cls, date);
   const absent = absentCodes(doc, cls, date);
@@ -261,13 +280,50 @@ export function dayTally(doc, cls, date) {
       into.set(m.code, later(into.get(m.code), m, 'edited'));
     } else if (m.mode === M.NOTE) note.set(m.code, later(note.get(m.code), m, 'edited'));
   }
+  const carry = carriedMarks(doc, cls, date, lesson);
+  for (const code of carry.keys()) get(code);
   for (const [code, e] of Object.entries(t)) {
-    const wm = w.get(code) || wOther.get(code);
+    const today = w.get(code), carried = !today && carry.get(code);
+    const wm = today || carried || wOther.get(code);
     if (wm) e.W = wm.value;
+    if (carried) { e.Wcarried = true; e.Wfrom = carried.date; }
     if (note.has(code)) e.note = note.get(code).note || '';
   }
   for (const code of absent) get(code).absent = true;
   return t;
+}
+
+// ---------- lesson choices ----------
+
+// The class's most recent lessons before today, from its worksheet marks and day plan, newest first:
+// {lesson, date} with the date it was last used. Two at most, so the list stays short.
+export function recentLessons(doc, cls, date, n = 2) {
+  const last = new Map();
+  const see = (lesson, d, t) => {
+    if (!lesson || !d || d >= date) return;
+    const p = last.get(lesson);
+    if (!p || d > p.date || (d === p.date && t > p.t)) last.set(lesson, { lesson, date: d, t });
+  };
+  for (const m of doc.marks) if (m.class === cls && m.mode === M.W && !m.deleted) see(m.lesson, m.date, m.edited || '');
+  for (const p of doc.dayPlan) if (p.class === cls) see(p.lesson, p.date, p.updatedAt || '');
+  return [...last.values()].sort((a, b) => b.date.localeCompare(a.date) || b.t.localeCompare(a.t))
+    .slice(0, n).map(({ lesson, date: d }) => ({ lesson, date: d }));
+}
+
+// The day plan's lessons for the class from today on, earliest first: {lesson, date}. Three at most.
+export function plannedLessons(doc, cls, date, n = 3) {
+  return doc.dayPlan.filter((p) => p.class === cls && p.date >= date && p.lesson)
+    .sort((a, b) => a.date.localeCompare(b.date)).slice(0, n).map((p) => ({ lesson: p.lesson, date: p.date }));
+}
+
+// A typed lesson name, trimmed. If it matches a recent or planned lesson apart from capitals, that
+// lesson's own label is used, so "study guide" and "Study guide" stay one lesson.
+export function matchLesson(doc, cls, date, typed) {
+  const v = (typed || '').trim();
+  if (!v) return '';
+  const low = v.toLowerCase();
+  const hit = [...recentLessons(doc, cls, date), ...plannedLessons(doc, cls, date)].find((x) => x.lesson.trim().toLowerCase() === low);
+  return hit ? hit.lesson : v;
 }
 
 // Dates on which roll was taken for a block, newest first, with the absent set for each.

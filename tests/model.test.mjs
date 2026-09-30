@@ -191,6 +191,97 @@ test('guard: tombstones never remove a live mark; different lessons keep their o
   assert.equal(live(two).length, 2);
 });
 
+// ---------- a lesson that runs over several days keeps its worksheet completion ----------
+const DT = (date, hm) => `${date}T${hm}:00.000Z`;
+const WD = (id, date, value, lesson, hm = '13:00', over = {}) => mk(id, { mode: 'W', reason: '', value, lesson, date, t: DT(date, hm), edited: DT(date, hm), ...over });
+const plan = (date, lesson, cls = 'B3') => ({ date, class: cls, lesson, updatedAt: DT(date, '12:00'), by: 'tablet-x' });
+const docWith = (marks, dayPlan = []) => { const d = Mo.clone(sample); d.marks.push(...marks); d.dayPlan.push(...dayPlan); return d; };
+
+test('carry-over: a continued lesson opens with each student\'s latest value, across one and two days', () => {
+  const d = docWith([WD('a-1', '2026-09-28', '3', 'Day 1'), WD('a-2', '2026-09-28', '2', 'Day 1', '13:00', { code: '7302' })],
+    [plan('2026-09-28', 'Day 1'), plan('2026-09-29', 'Day 1'), plan('2026-09-30', 'Day 1')]);
+  // One day later.
+  const t1 = Mo.dayTally(d, 'B3', '2026-09-29');
+  assert.deepEqual([t1['7301'].W, t1['7301'].Wcarried, t1['7301'].Wfrom], ['3', true, '2026-09-28']);
+  assert.equal(Mo.worksheetMark(d, 'B3', '2026-09-29', '7301', 'Day 1'), undefined, 'no mark of its own today');
+  assert.equal(Mo.worksheetCarry(d, 'B3', '2026-09-29', '7301', 'Day 1').id, 'a-1');
+  // 7301 moves to 5 on 9/29; 7302 is not touched. On 9/30 each opens at the latest value.
+  d.marks.push(WD('b-1', '2026-09-29', '5', 'Day 1'));
+  const t2 = Mo.dayTally(d, 'B3', '2026-09-30');
+  assert.deepEqual([t2['7301'].W, t2['7301'].Wfrom], ['5', '2026-09-29']);
+  assert.deepEqual([t2['7302'].W, t2['7302'].Wcarried, t2['7302'].Wfrom], ['2', true, '2026-09-28'], 'two days on');
+  // Today's own mark is shown unflagged.
+  const t3 = Mo.dayTally(d, 'B3', '2026-09-29');
+  assert.deepEqual([t3['7301'].W, !!t3['7301'].Wcarried], ['5', false]);
+});
+
+test('carry-over: a change on a new day is a new dated mark; the earlier day\'s mark is left alone', () => {
+  const first = WD('tablet-1', '2026-09-28', '3', 'Day 1');
+  const tablet = docWith([first], [plan('2026-09-28', 'Day 1'), plan('2026-09-29', 'Day 1')]);
+  const before = JSON.stringify(first);
+  // What the worksheet menu does on 9/29: no mark today, the carried value is the current one, a pick adds a mark dated today.
+  assert.equal(Mo.worksheetMark(tablet, 'B3', '2026-09-29', '7301', 'Day 1'), undefined);
+  assert.equal(Mo.worksheetCarry(tablet, 'B3', '2026-09-29', '7301', 'Day 1').value, '3');
+  tablet.marks.push(WD('tablet-2', '2026-09-29', '5', 'Day 1'));
+  const m = Mo.merge(tablet, docWith([first], [plan('2026-09-28', 'Day 1')]));
+  const w = m.marks.filter((x) => x.mode === 'W' && x.code === '7301' && !x.deleted).map((x) => [x.date, x.value]);
+  assert.deepEqual(w, [['2026-09-28', '3'], ['2026-09-29', '5']], 'both days kept: one mark per day per lesson');
+  assert.equal(JSON.stringify(m.marks.find((x) => x.id === 'tablet-1')), before, 'the 9/28 mark is unchanged');
+  assert.equal(Mo.dayTally(m, 'B3', '2026-09-28')['7301'].W, '3');
+  assert.deepEqual([Mo.dayTally(m, 'B3', '2026-09-29')['7301'].W, !!Mo.dayTally(m, 'B3', '2026-09-29')['7301'].Wcarried], ['5', false]);
+  assert.equal(Mo.dayTally(m, 'B3', '2026-09-30')['7301'], undefined, 'no lesson set on 9/30: nothing carries');
+});
+
+test('carry-over: blocks do not mix under the same lesson name', () => {
+  const d = docWith([WD('a-1', '2026-09-28', '4', 'Day 1'), WD('a-2', '2026-09-28', '1', 'Day 1', '13:30', { class: 'B4' }),
+    WD('a-3', '2026-09-28', '2', 'Day 1', '13:40', { class: 'B4', code: '7309' })],
+  [plan('2026-09-29', 'Day 1'), plan('2026-09-29', 'Day 1', 'B4')]);
+  const b3 = Mo.dayTally(d, 'B3', '2026-09-29'), b4 = Mo.dayTally(d, 'B4', '2026-09-29');
+  assert.equal(b3['7301'].W, '4', "B3 carries B3's value, not B4's later one");
+  assert.equal(b4['7301'].W, '1');
+  assert.equal(b3['7309'], undefined, 'a B4 mark never shows in B3');
+  assert.equal(Mo.worksheetCarry(d, 'B3', '2026-09-29', '7309', 'Day 1'), undefined);
+});
+
+test('carry-over: a blank-lesson mark never carries (a named one does)', () => {
+  const d = docWith([WD('a-1', '2026-09-27', '4', ''), WD('a-2', '2026-09-27', '2', 'Day 1', '13:00', { code: '7302' })],
+    [plan('2026-09-27', ''), plan('2026-09-28', 'Day 1')]);
+  const t = Mo.dayTally(d, 'B3', '2026-09-28');
+  assert.equal(t['7301'], undefined, 'the blank-lesson 4 does not carry');
+  assert.equal(t['7302'].W, '2');
+  assert.equal(Mo.worksheetCarry(d, 'B3', '2026-09-28', '7301', ''), undefined);
+  assert.equal(Mo.dayTally(docWith([WD('a-1', '2026-09-27', '4', '')]), 'B3', '2026-09-28')['7301'], undefined, 'no lesson today either');
+});
+
+test('recent lessons: at most two, newest first, today and other blocks left out', () => {
+  const d = docWith([WD('a-1', '2026-09-24', '3', 'Day 1'), WD('a-2', '2026-09-25', '3', 'Day 1'), WD('a-3', '2026-09-26', '4', 'Day 2'),
+    WD('a-4', '2026-09-29', '5', 'Day 4'), WD('a-5', '2026-09-28', '2', 'B4 only', '13:00', { class: 'B4' }),
+    WD('a-6', '2026-09-28', '2', 'Deleted', '13:00', { deleted: true }), WD('a-7', '2026-09-28', '1', '')],
+  [plan('2026-09-27', 'Day 3'), plan('2026-09-29', 'Day 4'), plan('2026-09-30', 'Day 5')]);
+  assert.deepEqual(Mo.recentLessons(d, 'B3', '2026-09-29'), [{ lesson: 'Day 3', date: '2026-09-27' }, { lesson: 'Day 2', date: '2026-09-26' }]);
+  assert.deepEqual(Mo.recentLessons(d, 'B3', '2026-09-30').map((x) => x.lesson), ['Day 4', 'Day 3'], 'the next day, yesterday\'s lesson leads');
+  assert.deepEqual(Mo.recentLessons(d, 'B3', '2026-09-25'), [{ lesson: 'Day 1', date: '2026-09-24' }], 'a lesson counts once, at its latest date');
+});
+
+test('planned lessons: today and later only, earliest first, at most three', () => {
+  const d = docWith([], [plan('2026-09-28', 'Day 3'), plan('2026-09-29', 'Day 4'), plan('2026-10-02', 'Day 7'), plan('2026-09-30', 'Day 5'),
+    plan('2026-10-01', 'Day 6'), plan('2026-09-30', 'Other block', 'B4'), plan('2026-10-05', '')]);
+  assert.deepEqual(Mo.plannedLessons(d, 'B3', '2026-09-29'), [{ lesson: 'Day 4', date: '2026-09-29' }, { lesson: 'Day 5', date: '2026-09-30' }, { lesson: 'Day 6', date: '2026-10-01' }]);
+  assert.deepEqual(Mo.plannedLessons(d, 'B3', '2026-10-02'), [{ lesson: 'Day 7', date: '2026-10-02' }]);
+  assert.deepEqual(Mo.plannedLessons(d, 'B3', '2026-10-03'), []);
+});
+
+test('a typed lesson is trimmed and matched without regard to capitals against the recent and planned lessons', () => {
+  const d = docWith([WD('a-1', '2026-09-28', '3', 'Study guide')], [plan('2026-09-30', 'Day 2')]);
+  assert.equal(Mo.matchLesson(d, 'B3', '2026-09-29', '  study GUIDE '), 'Study guide', 'recent label reused');
+  assert.equal(Mo.matchLesson(d, 'B3', '2026-09-29', 'day 2'), 'Day 2', 'planned label reused');
+  assert.equal(Mo.matchLesson(d, 'B3', '2026-09-29', '  Quiz 1  '), 'Quiz 1', 'a new name, trimmed');
+  assert.equal(Mo.matchLesson(d, 'B3', '2026-09-29', '   '), '');
+  // The reused label is the one that carries.
+  d.dayPlan.push(plan('2026-09-29', Mo.matchLesson(d, 'B3', '2026-09-29', 'study guide')));
+  assert.equal(Mo.dayTally(d, 'B3', '2026-09-29')['7301'].W, '3');
+});
+
 // Random runs. Without deletes, every merge order gives the same document. With deletes, one case
 // depends on order: a device deletes the mark on screen while another still holds an older duplicate
 // it has not synced; only live marks compete (ruling 1), so that duplicate may or may not come back

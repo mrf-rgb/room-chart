@@ -2,6 +2,13 @@
 // 0-3 scale still showing as their own digit.
 //   S=<folder> [VW=390 VH=844 TAG=phone] node tests/scale.mjs   (test server on 8123, fresh sample data)
 import { chromium } from 'playwright-core';
+// A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
+// class. Works on either version: the lesson button opens a text box, or a list with 'Something else…'.
+async function setLesson(page, label) {
+  await page.locator('#lesson').click(); await page.waitForTimeout(150);
+  if (!(await page.locator('.sheet-panel input').count())) { await page.locator('.sheet-panel .sbtn', { hasText: 'Something else' }).click(); await page.waitForTimeout(150); }
+  await page.locator('.sheet-panel input').fill(label); await page.locator('.sheet-panel .sbtn.primary').click(); await page.waitForTimeout(150);
+}
 const S = process.env.S;
 const VW = Number(process.env.VW || 390), VH = Number(process.env.VH || 844), TAG = process.env.TAG || 'phone';
 const URL = 'http://localhost:8123/?nosw=1&testdrive=http://localhost:8123/api';
@@ -14,6 +21,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(URL); await page.waitForTimeout(1200);
 await page.selectOption('#cls', 'B3'); await page.waitForTimeout(300);
+
+await setLesson(page, 'Lesson A');
 await page.locator('.mode.m-w').click();
 
 const LEVELS = [['5', 'all done'], ['4', 'most'], ['3', 'about half'], ['2', 'some'], ['1', 'started'], ['0', 'nothing']];
@@ -71,7 +80,7 @@ await page.evaluate(({ codes, today }) => {
   codes.forEach((code, k) => {
     const t = new Date(Date.now() - 3600000).toISOString();
     a.S.doc.marks = a.S.doc.marks.filter((m) => !(m.code === code && m.mode === 'W'));
-    a.S.doc.marks.push({ id: `phone-old-${k}`, t, date: today, class: 'B3', code, lesson: '', mode: 'W', value: String(3 - k), reason: '', note: '', device: 'phone-old', edited: t });
+    a.S.doc.marks.push({ id: `phone-old-${k}`, t, date: today, class: 'B3', code, lesson: a.Mo.lessonFor(a.S.doc, 'B3', today), mode: 'W', value: String(3 - k), reason: '', note: '', device: 'phone-old', edited: t });
   });
 }, { codes: seated.slice(1, 5).map((s) => s.code), today });
 await page.locator('.mode.m-w').click(); await page.waitForTimeout(150); // re-render

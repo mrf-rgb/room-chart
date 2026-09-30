@@ -105,7 +105,8 @@ function sheet(title, subtitle, buttons, opts = {}) {
       buttons.map((b) => h('button', {
         class: 'sbtn ' + (b.cls || ''), 'aria-pressed': b.current ? 'true' : null,
         onclick: () => { closeSheet(); b.onClick && b.onClick(); },
-      }, b.letter ? h('span', { class: 'sletter', text: b.letter }) : null, h('span', { text: b.label })))),
+      }, b.letter ? h('span', { class: 'sletter', text: b.letter }) : null,
+      b.detail ? h('span', { class: 'slabel' }, h('span', { text: b.label }), h('span', { class: 'sdetail', text: b.detail })) : h('span', { text: b.label })))),
     opts.noCancel ? null : h('button', { class: 'sbtn cancel', onclick: closeSheet, text: 'Cancel' }));
   sh.append(panel);
   opened(sh);
@@ -185,12 +186,17 @@ async function ensureRoll() {
   await save();
 }
 
+// Today's mark for the lesson is changed in place. With none, the value carried from an earlier day
+// shows as the current one, and a pick saves a new mark dated today.
 function worksheetMenu(code) {
   const lesson = Mo.lessonFor(S.doc, cls(), today());
   const existing = Mo.worksheetMark(S.doc, cls(), today(), code, lesson);
+  const carried = !existing && Mo.worksheetCarry(S.doc, cls(), today(), code, lesson);
+  const now = existing || carried;
   const pickW = (v) => existing ? editMark(existing, { value: v }) : addMark(newMark(Mo.M.W, code, { value: v }));
-  sheet(nameOf(code), `Worksheet${lesson ? ' · ' + lesson : ''}${existing ? ' · now ' + existing.value : ''}`, [
-    ...W_LEVELS.map((v) => ({ label: W_LABEL[v], letter: v, cls: 'c-w' + v, current: existing && existing.value === v, onClick: () => pickW(v) })),
+  const nowText = existing ? ' · now ' + existing.value : carried ? ` · now ${carried.value}, from ${fmtDate(carried.date)}` : '';
+  sheet(nameOf(code), `Worksheet${lesson ? ' · ' + lesson : ''}${nowText}`, [
+    ...W_LEVELS.map((v) => ({ label: W_LABEL[v], letter: v, cls: 'c-w' + v, current: now && now.value === v, onClick: () => pickW(v) })),
     { label: 'Absent', letter: 'A', cls: 'c-abs', onClick: () => setAbsent(code, true) },
   ], { levels: true });
 }
@@ -221,7 +227,8 @@ function onSeatTap(ti, si) {
   const mode = S.meta.mode;
   if (mode === 'Att') return setAbsent(code, !isAbsent(code));
   if (isAbsent(code)) return absentMenu(code);
-  if (mode === 'W') return worksheetMenu(code);
+  // Worksheet marks belong to a lesson: with none set for today, ask first, then open this student's menu.
+  if (mode === 'W') return Mo.lessonFor(S.doc, cls(), today()) ? worksheetMenu(code) : lessonMenu(() => worksheetMenu(code));
   return reasonMenu(mode, code);
 }
 
@@ -328,16 +335,18 @@ function daySummary() {
       const cell = (ch) => h('td', {}, ch ? chip(ch) : '');
       return h('tr', { class: absent.has(code) ? 'row-abs' : '' },
         h('td', { class: 'who', text: nameOf(code) }),
-        cell(e.W != null ? { cls: 'c-w' + e.W, text: e.W } : null),
+        cell(e.W != null ? { cls: 'c-w' + e.W + (e.Wcarried ? ' carried' : ''), text: e.W } : null),
         cell(e.Pos ? { cls: 'c-pos', text: '+' + (e.Pos > 1 ? e.Pos : '') } : null),
         cell(e.Neg ? { cls: 'c-neg', text: '−' + (e.Neg > 1 ? e.Neg : '') } : null),
         cell(e.Part ? { cls: 'c-part', text: 'P' + (e.Part > 1 ? e.Part : '') } : null),
         cell(absent.has(code) ? { cls: 'c-abs', text: 'A' } : (roll ? { cls: 'c-none', text: '✓' } : null)));
     })));
   const n = codes.length;
+  const carried = codes.some((code) => (tally[code] || {}).Wcarried);
   modal(`Day summary · ${Mo.classLabel(S.doc, c)}`, h('div', {},
     h('p', { class: 'muted', text: `${fmtDate(d)}${lesson ? ' · ' + lesson : ''} · ` +
       (roll ? `roll taken: ${n - absent.size} present, ${absent.size} absent` : 'no roll yet (no marks today)') }),
+    carried ? h('p', { class: 'muted carried-key' }, chip({ cls: 'c-w3 carried', text: '3' }), ' dashed with a dot: carried over from an earlier day of this lesson, not changed today') : null,
     h('div', { class: 'table-wrap' }, tb)));
 }
 
@@ -379,11 +388,41 @@ function pickRandom() {
 
 // ---------- lesson ----------
 
-async function changeLesson() {
+// A short list: today's planned lesson, the class's two most recent lessons (to continue one into a
+// new day), the next planned ones, then "Something else…" to type a name. From a Worksheet tap,
+// `after` opens that student's menu once a lesson is picked; Cancel records nothing.
+function lessonMenu(after) {
+  const c = cls(), d = today();
+  const cur = Mo.lessonFor(S.doc, c, d);
+  const planned = Mo.plannedLessons(S.doc, c, d);
+  const items = [], seen = new Set();
+  const add = (lesson, detail) => {
+    const k = lesson.trim().toLowerCase();
+    if (!seen.has(k)) { seen.add(k); items.push({ lesson, detail }); }
+  };
+  for (const p of planned) if (p.date === d) add(p.lesson, 'planned today');
+  for (const r of Mo.recentLessons(S.doc, c, d)) add(r.lesson, 'last used ' + fmtDate(r.date));
+  for (const p of planned) if (p.date > d) add(p.lesson, 'planned ' + fmtDate(p.date));
+  const title = `Lesson for ${Mo.classLabel(S.doc, c)}, ${fmtDate(d)}`;
+  sheet(title, after ? 'Worksheet marks go with a lesson. Pick one to continue or start.' : null, [
+    ...items.map((x) => ({ label: x.lesson, detail: x.detail, cls: 'lesson-opt', current: x.lesson === cur, onClick: () => chooseLesson(x.lesson, after) })),
+    { label: 'Something else…', cls: 'lesson-other', onClick: async () => {
+      const v = await prompt(title, after ? '' : cur, 'Set');
+      if (v === null || !v.trim()) return;
+      chooseLesson(Mo.matchLesson(S.doc, c, d, v), after);
+    } },
+  ]);
+}
+
+async function chooseLesson(v, after) {
+  await setLesson(v);
+  if (after) after();
+}
+
+async function setLesson(v) {
   const c = cls(), d = today();
   const old = Mo.lessonFor(S.doc, c, d);
-  const v = await prompt(`Lesson for ${Mo.classLabel(S.doc, c)}, ${fmtDate(d)}`, old, 'Set');
-  if (v === null || v === old) return;
+  if (!v || v === old) return;
   const t = Mo.nowIso();
   const p = S.doc.dayPlan.find((x) => x.class === c && x.date === d);
   if (p) Object.assign(p, { lesson: v, updatedAt: t, by: S.meta.device });
@@ -906,7 +945,7 @@ function wire() {
   };
   $('view').onclick = async () => { S.meta.view = S.meta.view === 'board' ? 'door' : 'board'; await save(false); renderAll(); };
   $('sync').onclick = () => { if (S.meta.demo || !S.meta.dataId) settings(); else sync(true); };
-  $('lesson').onclick = changeLesson;
+  $('lesson').onclick = () => lessonMenu(null);
   $('pick').onclick = pickRandom;
   $('summary').onclick = daySummary;
   $('history').onclick = history;

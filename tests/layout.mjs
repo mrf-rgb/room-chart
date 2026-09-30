@@ -2,6 +2,13 @@
 // that hides and shows them. Finger taps, at phone, tablet and laptop sizes, both ways round.
 //   S=<folder> node tests/layout.mjs   (test server on 8123, fresh sample data in <folder>/drive1)
 import { chromium } from 'playwright-core';
+// A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
+// class. Works on either version: the lesson button opens a text box, or a list with 'Something else…'.
+async function setLesson(page, label) {
+  await page.locator('#lesson').click(); await page.waitForTimeout(150);
+  if (!(await page.locator('.sheet-panel input').count())) { await page.locator('.sheet-panel .sbtn', { hasText: 'Something else' }).click(); await page.waitForTimeout(150); }
+  await page.locator('.sheet-panel input').fill(label); await page.locator('.sheet-panel .sbtn.primary').click(); await page.waitForTimeout(150);
+}
 const S = process.env.S;
 const URL = 'http://localhost:8123/?nosw=1&testdrive=http://localhost:8123/api';
 const SIZES = [[390, 844, 'phone'], [844, 390, 'phone-landscape'], [1280, 800, 'tablet'], [800, 1280, 'tablet-portrait'], [1366, 768, 'laptop']];
@@ -19,6 +26,8 @@ for (const [VW, VH, t] of SIZES) {
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(`${t}: ${m.text()}`); });
   await page.goto(URL); await page.waitForTimeout(1200);
   await page.selectOption('#cls', 'B3'); await page.waitForTimeout(300);
+
+  await setLesson(page, 'Lesson A');
 
   // The column scrolls on a phone on its side; a finger scrolls it to the button first.
   const tap = async (sel) => { await page.locator(sel).scrollIntoViewIfNeeded({ timeout: 5000 }); const b = await page.locator(sel).boundingBox(); await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await page.waitForTimeout(350); };

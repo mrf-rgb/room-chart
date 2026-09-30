@@ -15,12 +15,13 @@ function el(name, attrs = {}, parent) {
   return e;
 }
 
-// Chips for the day's marks, each with its letter or digit.
+// Chips for the day's marks, each with its letter or digit. A worksheet value carried over from an
+// earlier day of the lesson is outlined and dotted until it is changed today.
 export function chipsFor(e) {
   if (!e) return [];
   const out = [];
   if (e.absent) out.push({ cls: 'c-abs', text: 'A' });
-  if (e.W !== null && e.W !== undefined) out.push({ cls: 'c-w' + e.W, text: String(e.W) });
+  if (e.W !== null && e.W !== undefined) out.push({ cls: 'c-w' + e.W + (e.Wcarried ? ' carried' : ''), text: String(e.W), carried: !!e.Wcarried });
   if (e.Pos) out.push({ cls: 'c-pos', text: e.Pos > 1 ? '+' + e.Pos : '+' });
   if (e.Neg) out.push({ cls: 'c-neg', text: e.Neg > 1 ? '−' + e.Neg : '−' });
   if (e.Part) out.push({ cls: 'c-part', text: e.Part > 1 ? 'P' + e.Part : 'P' });
@@ -165,6 +166,7 @@ export class ChartView {
             el('rect', { class: 'chip ' + ch.cls, x, y: v.y + 12, width: widths[k], height: 26, rx: 6 }, text);
             const tt = el('text', { class: 'chip-t ' + ch.cls, x: x + widths[k] / 2, y: v.y + 32, 'font-size': (20 * Math.max(f, 0.8)).toFixed(1) }, text);
             tt.textContent = ch.text;
+            if (ch.carried) el('circle', { class: 'chip-dot', cx: x + widths[k], cy: v.y + 12, r: 5 }, text);
             x += widths[k] + gap;
           });
         }

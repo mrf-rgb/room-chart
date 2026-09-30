@@ -11,4 +11,4 @@ export const FILES = {
   inbox: 'class-tracker-inbox.json',
 };
 
-export const VERSION = '1.0.4';
+export const VERSION = '1.0.5';

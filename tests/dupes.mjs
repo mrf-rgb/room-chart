@@ -3,6 +3,13 @@
 // on either device shows on both.
 //   S=<folder> node tests/dupes.mjs   (test server on 8123, fresh sample data in <folder>/drive1)
 import { chromium } from 'playwright-core';
+// A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
+// class. Works on either version: the lesson button opens a text box, or a list with 'Something else…'.
+async function setLesson(page, label) {
+  await page.locator('#lesson').click(); await page.waitForTimeout(150);
+  if (!(await page.locator('.sheet-panel input').count())) { await page.locator('.sheet-panel .sbtn', { hasText: 'Something else' }).click(); await page.waitForTimeout(150); }
+  await page.locator('.sheet-panel input').fill(label); await page.locator('.sheet-panel .sbtn.primary').click(); await page.waitForTimeout(150);
+}
 import { readFileSync } from 'node:fs';
 const S = process.env.S;
 const DIR = `${S}/drive1`;
@@ -18,6 +25,8 @@ async function device(vp) {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(URL); await page.waitForTimeout(1200);
   await page.selectOption('#cls', 'B3'); await page.waitForTimeout(200);
+
+  await setLesson(page, 'Lesson A');
   await page.locator('.mode.m-w').click();
   return { ctx, page };
 }

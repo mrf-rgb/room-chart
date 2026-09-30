@@ -139,6 +139,9 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 .chip.c-abs { fill: var(--abs); } .chip.c-w5 { fill: var(--w5); } .chip.c-w4 { fill: var(--w4); }
 .chip.c-w3 { fill: var(--w3); } .chip.c-w2 { fill: var(--w2); } .chip.c-w1 { fill: var(--w1); } .chip.c-w0 { fill: var(--w0); }
 .chip-t.c-w4, .chip-t.c-w3, .chip-t.c-w2 { fill: #111; }
+/* Worksheet value carried over from an earlier day of the lesson: dashed outline and a corner dot. */
+.chip.carried { stroke: #111827; stroke-width: 2.5; stroke-dasharray: 5 3; }
+.chip-dot { fill: #fff; stroke: #111827; stroke-width: 2; }
 .handle rect { fill: #f59e0b; stroke: #92400e; stroke-width: 2; cursor: grab; }
 .handle line { stroke: #78350f; stroke-width: 3; }
 .ghost { font-size: 30px; font-weight: 800; text-anchor: middle; fill: #7c3aed; pointer-events: none; paint-order: stroke; stroke: #fff; stroke-width: 6px; }
@@ -176,6 +179,9 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 .sheet-buttons.levels .sbtn { flex-direction: column; justify-content: center; gap: 4px; min-height: 92px; padding: 8px 4px; text-align: center; font-size: 1.05rem; }
 .sheet-buttons.levels .sbtn.c-abs { grid-column: 1 / -1; flex-direction: row; min-height: 60px; }
 @media (min-width: 560px) { .sheet-buttons.levels { grid-template-columns: repeat(6, 1fr); } }
+.slabel { display: flex; flex-direction: column; gap: 2px; }
+.sdetail { font-size: .9rem; font-weight: 500; color: var(--muted); }
+.sbtn.lesson-other { color: var(--accent); }
 .sbtn.primary { background: var(--accent); color: #fff; border-color: var(--accent); justify-content: center; }
 .sbtn.danger { background: #fef2f2; color: #991b1b; border-color: #fca5a5; }
 .sbtn.cancel { justify-content: center; background: #fff; color: var(--muted); }
@@ -205,6 +211,9 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 .chipx.c-w3 { background: var(--w3); color: #111; } .chipx.c-w2 { background: var(--w2); color: #111; }
 .chipx.c-w1 { background: var(--w1); } .chipx.c-w0 { background: var(--w0); }
 .chipx.c-none { background: #e5e7eb; color: #374151; }
+.chipx.carried { position: relative; outline: 2.5px dashed #111827; outline-offset: -2.5px; }
+.chipx.carried::after { content: ''; position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 2px solid #111827; }
+.carried-key { display: flex; align-items: center; gap: 10px; }
 .table-wrap { overflow: auto; max-width: 100%; background: #fff; border-radius: 10px; border: 1px solid #cbd5e1; }
 .grid-table { border-collapse: collapse; min-width: 100%; }
 .grid-table th, .grid-table td { border-bottom: 1px solid #e5e7eb; padding: 6px 8px; text-align: center; white-space: nowrap; }
@@ -218,9 +227,9 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 .abs-cell { background: var(--abs-tile); color: #111; font-weight: 900; }
 .pres-cell { color: #9ca3af; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(140%); background: #111827; color: #fff; padding: 12px 18px;
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, calc(100% + 40px)); /* fully off screen, even when empty */ background: #111827; color: #fff; padding: 12px 18px;
   border-radius: 12px; font-weight: 700; z-index: 30; transition: transform .2s; max-width: 92vw; text-align: center; pointer-events: none; }
-.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.show { transform: translate(-50%, 0); }
 .toast.big { font-size: 2.6rem; padding: 18px 30px; background: #5b21b6; }
 
 .welcome { position: fixed; inset: 0; background: var(--head); display: grid; place-items: center; z-index: 40; padding: 16px; }

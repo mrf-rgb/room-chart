@@ -1,5 +1,5 @@
 // Offline shell: the app files are cached; Google sign-in, Picker and Drive calls always go to the network.
-const CACHE = 'room-chart-1.0.4';
+const CACHE = 'room-chart-1.0.5';
 const SHELL = ['./', 'index.html', 'css/app.css', 'js/app.js', 'js/model.js', 'js/chart.js', 'js/store.js', 'js/drive.js', 'js/config.js',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'sample/sample-data.json'];
 
