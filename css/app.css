@@ -18,6 +18,7 @@
   --w2: #ef6c00;
   --w1: #ad1457;
   --w0: #c62828;
+  --pick: #7c3aed;
   --tap: 52px;
 }
 * { box-sizing: border-box; }
@@ -46,6 +47,16 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .lesson { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 2px dashed #9fb3d9; background: transparent; color: #fff; font-weight: 700; font-size: 1.05rem; }
 .lesson.blank { color: #c9d4ea; font-weight: 500; }
 .date { color: #dbe3f3; font-weight: 600; }
+/* The random picker: the largest button in the controls, in a colour of its own (the purple of the
+   picked seat). It keeps its place before Day and is as wide as its group, with a small gap after it. */
+#top #pick { min-height: 70px; padding: 0 16px; border: 2px solid #ddd6fe; background: var(--pick); color: #fff; font-size: 1.2rem; font-weight: 800; }
+/* On top: Pick sits above Day, History, Edit and ⚙, as wide as the four together. */
+body.lay-top .tools { display: grid; grid-template-columns: auto auto minmax(0, 1fr) repeat(4, auto); }
+body.lay-top #lesson { grid-column: 1; grid-row: 1 / span 2; }
+body.lay-top #date { grid-column: 2; grid-row: 1 / span 2; }
+body.lay-top #pick { grid-column: 4 / -1; grid-row: 1; margin-bottom: 4px; }
+body.lay-top #summary { grid-column: 4; grid-row: 2; } body.lay-top #history { grid-column: 5; grid-row: 2; }
+body.lay-top #edit { grid-column: 6; grid-row: 2; } body.lay-top #settings { grid-column: 7; grid-row: 2; }
 
 /* ---------- modes ---------- */
 #modes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding-bottom: 8px; }
@@ -85,7 +96,7 @@ body.lay-side { flex-direction: row; --side-w: 216px; }
 body.lay-side .ctl-tab { top: 50%; left: 0; transform: translateY(-50%); flex-direction: column; width: 44px; min-width: 0; height: auto; min-height: 72px;
   padding: 14px 0; border-radius: 0 14px 14px 0; }
 body.lay-side #top { flex: none; width: var(--side-w); height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
-  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-content: start; gap: 6px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: start; gap: 6px;
   padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
 body.lay-side #top > .bar:not(.editbar) { display: contents; }
 body.lay-side :where(#top > .bar:not(.editbar) > *, #modes, #editbar) { grid-column: 1 / -1; min-width: 0; }
@@ -94,8 +105,11 @@ body.lay-side #cls { order: 1; } body.lay-side #chart { order: 2; } body.lay-sid
 body.lay-side #lesson { order: 5; } body.lay-side #date { order: 6; } body.lay-side #modes, body.lay-side #editbar { order: 7; }
 body.lay-side #pick { order: 8; } body.lay-side #summary { order: 9; } body.lay-side #history { order: 10; }
 body.lay-side #edit { order: 11; } body.lay-side #settings { order: 12; }
-body.lay-side #pick, body.lay-side #summary, body.lay-side #history { grid-column: span 2; min-width: 0; padding: 0 4px; }
-body.lay-side #edit { grid-column: span 4; } body.lay-side #settings { grid-column: span 2; min-width: 0; }
+/* Pick takes the column's full width; Day, History, Edit and ⚙ share the row below it. While its place is
+   below the fold (a short screen), Pick rests at the foot of the column, so it never needs scrolling to. */
+body.lay-side #top #pick { padding: 0 6px; margin-bottom: 4px; }
+body.lay-side:not(.editing) #top #pick { position: sticky; bottom: 0; z-index: 1; box-shadow: 0 0 0 8px var(--head); }
+body.lay-side #summary, body.lay-side #history, body.lay-side #edit, body.lay-side #settings { grid-column: span 1; min-width: 0; padding: 0 2px; font-size: 15px; }
 body.lay-side #history .long { display: none; } body.lay-side #history .short { display: inline; }
 body.lay-side #top select { width: 100%; }
 body.lay-side .pill { white-space: normal; line-height: 1.15; padding: 4px 10px; max-width: none; }
@@ -249,6 +263,8 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
   #top { padding: 4px 6px 0; }
   .bar { gap: 4px; padding-bottom: 4px; }
   #top select, .tbtn, .pill, .lesson { min-height: 40px; }
+  #top #pick { min-height: 64px; }
+  body.lay-top #lesson { grid-column: 1 / 4; }
   .tbtn { padding: 0 9px; min-width: 40px; }
   #cls, #chart { flex: 1 1 0; min-width: 0; }
   .long { display: none; } .short { display: inline; }
@@ -267,6 +283,8 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
   body.lay-side { --side-w: 190px; }
   body.lay-side #top { font-size: 16px; gap: 4px; }
   body.lay-side #top select, body.lay-side .tbtn, body.lay-side .pill, body.lay-side .lesson { min-height: 40px; }
+  body.lay-side #top #pick { min-height: 64px; font-size: 18px; }
+  body.lay-side #summary, body.lay-side #history, body.lay-side #edit, body.lay-side #settings { font-size: 14px; }
   body.lay-side .pill { font-size: 14px; }
   body.lay-side .lesson { font-size: 15px; padding: 0 8px; }
   body.lay-side .date { display: none; }

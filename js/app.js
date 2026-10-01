@@ -321,11 +321,17 @@ function seatOrder(c, chart) {
   return out;
 }
 
+// The class list of the day summary and the attendance history: every active student once, in roster
+// order, seated in the current chart or not. The roster is kept in last-name order, so the list is
+// the same whatever chart is open.
+function listOrder(c) { return Mo.activeRoster(S.doc, c).map((s) => s.code); }
+
 function daySummary() {
   const c = cls(), d = today();
   const tally = Mo.dayTally(S.doc, c, d);
-  const codes = seatOrder(c, currentChart());
+  const codes = listOrder(c);
   const absent = Mo.absentCodes(S.doc, c, d);
+  const nAbsent = codes.filter((code) => absent.has(code)).length;
   const roll = Mo.rollTaken(S.doc, c, d);
   const lesson = Mo.lessonFor(S.doc, c, d);
   const tb = h('table', { class: 'grid-table' },
@@ -345,7 +351,7 @@ function daySummary() {
   const carried = codes.some((code) => (tally[code] || {}).Wcarried);
   modal(`Day summary · ${Mo.classLabel(S.doc, c)}`, h('div', {},
     h('p', { class: 'muted', text: `${fmtDate(d)}${lesson ? ' · ' + lesson : ''} · ` +
-      (roll ? `roll taken: ${n - absent.size} present, ${absent.size} absent` : 'no roll yet (no marks today)') }),
+      (roll ? `roll taken: ${n - nAbsent} present, ${nAbsent} absent` : 'no roll yet (no marks today)') }),
     carried ? h('p', { class: 'muted carried-key' }, chip({ cls: 'c-w3 carried', text: '3' }), ' dashed with a dot: carried over from an earlier day of this lesson, not changed today') : null,
     h('div', { class: 'table-wrap' }, tb)));
 }
@@ -353,7 +359,7 @@ function daySummary() {
 function history() {
   const c = cls();
   const rows = Mo.attendanceHistory(S.doc, c);
-  const codes = seatOrder(c, currentChart());
+  const codes = listOrder(c);
   const tb = h('table', { class: 'grid-table history' },
     h('thead', {}, h('tr', {}, h('th', { class: 'sticky', text: 'Date' }), codes.map((code) => h('th', { class: 'vert' }, h('span', { text: nameOf(code) }))), h('th', { text: 'Absent' }))),
     h('tbody', {}, rows.map((r) => h('tr', {},

@@ -1,5 +1,6 @@
 // Screen layout: controls on top in portrait, in a column on the left in landscape, and the tab
-// that hides and shows them. Finger taps, at phone, tablet and laptop sizes, both ways round.
+// that hides and shows them, and the large Pick button. Finger taps, at phone, tablet and laptop sizes,
+// both ways round.
 //   S=<folder> node tests/layout.mjs   (test server on 8123, fresh sample data in <folder>/drive1)
 import { chromium } from 'playwright-core';
 // A Worksheet tap asks for the lesson when the class has none for today (1.0.5); set it first, as in
@@ -92,6 +93,71 @@ for (const [VW, VH, t] of SIZES) {
     return document.body.classList.contains('lay-side') ? Math.abs(a.left - c.right) < 1 : Math.abs(a.top - c.bottom) < 1; });
   check('the tab sits on the edge of the controls and clears every seat', edge && !(await overlapsTab()));
 
+  // ---------- the Pick button ----------
+  // Found by its label, as the teacher finds it: the largest button in the controls, in its own colour.
+  {
+    const found = (await page.getByRole('button', { name: 'Pick a student', exact: true }).count()) === 1;
+    const measure = () => page.evaluate(() => {
+      const rect = (e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom }; };
+      const top = document.getElementById('top'), pick = document.getElementById('pick');
+      const o = {}; for (const id of ['pick', 'summary', 'history', 'edit', 'settings', 'lesson', 'modes']) o[id] = rect(document.getElementById(id));
+      const shown = (e) => e.getClientRects().length > 0;
+      o.others = [...top.querySelectorAll('button, select')].filter((e) => e !== pick && shown(e)).map((e) => { const b = rect(e); return b.w * b.h; });
+      const bg = (e) => getComputedStyle(e).backgroundColor;
+      o.bg = bg(pick); o.otherBg = [...new Set([top, ...top.querySelectorAll('button, select')].filter((e) => e !== pick && shown(e)).map(bg))];
+      const c = { x: o.pick.x + o.pick.w / 2, y: o.pick.y + o.pick.h / 2 };
+      o.onTop = document.elementFromPoint(c.x, c.y) === pick;
+      o.inView = o.pick.x >= 0 && o.pick.y >= 0 && o.pick.r <= innerWidth + 0.5 && o.pick.b <= innerHeight + 0.5;
+      o.scrollTop = top.scrollTop; o.side = document.body.classList.contains('lay-side');
+      return o;
+    });
+    const scrollTop = (to) => page.evaluate((v) => { const e = document.getElementById('top'); e.scrollTop = v === 'end' ? e.scrollHeight : v; }, to);
+    await scrollTop(0);
+    const g = await measure();
+    check('Pick: labelled "Pick a student", at least 1.5 times the height of Day and of History', found && g.pick.h >= 1.5 * g.summary.h - 0.01 && g.pick.h >= 1.5 * g.history.h - 0.01,
+      `Pick ${Math.round(g.pick.h)} px, Day ${Math.round(g.summary.h)} px, History ${Math.round(g.history.h)} px`);
+    check('Pick: the largest button in the controls', g.others.every((a) => g.pick.w * g.pick.h > a), `${Math.round(g.pick.w)}x${Math.round(g.pick.h)}; the next largest is ${Math.round(Math.max(...g.others))} px²`);
+    // Its group: the whole column on the left; Day, History, Edit and ⚙ together on top.
+    const groupL = g.side ? g.modes.x : g.summary.x, groupR = g.side ? g.modes.r : g.settings.r;
+    check('Pick: the full width of its group', Math.abs(g.pick.x - groupL) < 1 && Math.abs(g.pick.r - groupR) < 1, `Pick ${Math.round(g.pick.x)}–${Math.round(g.pick.r)}, group ${Math.round(groupL)}–${Math.round(groupR)}`);
+    const solid = /^rgb\(/.test(g.bg) || /^rgba\([^)]*,\s*1\)$/.test(g.bg);
+    check('Pick: a solid colour that no other control has', solid && !g.otherBg.includes(g.bg), g.bg);
+    check('Pick: visible without scrolling the controls', found && g.scrollTop === 0 && g.inView && g.onTop, `at ${Math.round(g.pick.x)},${Math.round(g.pick.y)}`);
+    // Its own place: scrolled to the end, the column shows every control where it belongs.
+    await scrollTop('end');
+    const n = await measure();
+    await scrollTop(0);
+    const gap = n.summary.y - n.pick.b, usual = n.history.x - n.summary.r;
+    const inOrder = n.side ? n.pick.y >= n.modes.b - 0.5 && n.summary.y >= n.pick.b : n.pick.x >= n.lesson.r && n.summary.y >= n.pick.b;
+    check('Pick: in its place before Day, History and ⚙, set apart from them by a small gap', inOrder && gap > usual + 1 && gap <= 16 && Math.abs(n.settings.y - n.summary.y) < 1 && Math.abs(n.history.y - n.summary.y) < 1,
+      `gap ${Math.round(gap)} px; between Day and History ${Math.round(usual)} px`);
+
+    // A tap on it still picks a present student. Three students are marked absent first, and present again after.
+    const present = () => page.evaluate(() => { const a = window.__app, S = a.S, c = S.meta.cls, d = a.Mo.localDate();
+      const ch = S.doc.charts[c].find((q) => q.id === (S.meta.chartBy[c] || S.doc.lastOpened[c].chart));
+      const absent = a.Mo.absentCodes(S.doc, c, d), active = new Set(a.Mo.activeRoster(S.doc, c).map((q) => q.code));
+      return { present: [...a.Mo.seatedCodes(ch)].filter((q) => active.has(q) && !absent.has(q)), absent: [...absent] }; });
+    const three = (await seatBoxes()).sort((a, b) => a.y - b.y || a.x - b.x).slice(0, 3);
+    const tapSeats = async () => { for (const q of three) { await page.touchscreen.tap(q.x + q.w / 2, q.y + q.h / 2); await page.waitForTimeout(250); } };
+    await tap('.mode.m-att'); await tapSeats();
+    const roll = await present();
+    const picks = [];
+    if (found) for (let i = 0; i < 10; i++) {
+      await scrollTop(0);
+      const b = await page.getByRole('button', { name: 'Pick a student', exact: true }).boundingBox();
+      await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await page.waitForTimeout(200);
+      picks.push(await page.evaluate(() => { const a = window.__app; const lit = document.querySelectorAll('.seat.picked');
+        return { code: a.S.picked, lit: lit.length, toast: document.getElementById('toast').classList.contains('show') ? document.getElementById('toast').textContent : '' }; }));
+    }
+    check('Pick: a finger tap picks a present student, shown on the chart and by name; absent students never',
+      roll.absent.length === 3 && picks.length === 10 && picks.every((p, i) => roll.present.includes(p.code) && !roll.absent.includes(p.code) && p.lit === 1 && p.toast === p.code && (i === 0 || p.code !== picks[i - 1].code)),
+      `${picks.length} picks, ${new Set(picks.map((p) => p.code)).size} different students, ${roll.present.length} present, ${roll.absent.length} absent`);
+    await page.screenshot({ path: `${S}/shots/layout-${t}-pick.png` });
+    await tapSeats(); await tap('.mode.m-w');
+    await page.evaluate(() => { window.__app.S.picked = null; document.getElementById('cls').dispatchEvent(new Event('change')); }); await page.waitForTimeout(300);
+    await scrollTop(0);
+  }
+
   // ---------- rotation ----------
   await zoomIn();
   await page.setViewportSize({ width: VH, height: VW }); await page.waitForTimeout(400);
@@ -127,6 +193,8 @@ for (const [VW, VH, t] of SIZES) {
   const stage = await box('#stage');
   check('one tap on the tab hides all the controls; the chart fills the screen', s.hidden && !s.topShown && Math.abs(stage.w - VW) < 1 && Math.abs(stage.h - VH) < 1);
   check('hidden: the tab stays at the screen\'s edge', portrait ? Math.round(tb.y) === 0 : Math.round(tb.x) === 0, `${Math.round(tb.x)},${Math.round(tb.y)}`);
+  check('hidden: the tab gains no Pick button', await page.evaluate(() => { const p = document.getElementById('pick'), tabEl = document.getElementById('ctl-tab');
+    return p.getClientRects().length === 0 && !tabEl.contains(p) && !/pick/i.test(tabEl.textContent) && tabEl.querySelectorAll('button').length === 0; }));
   check('after hiding: the chart is refitted and clear of the tab', await fitted() && !(await overlapsTab()));
   // After a fit, a finger on the seat nearest the tab, at the card's edge closest to it, reaches the seat.
   {
