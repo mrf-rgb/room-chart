@@ -8,7 +8,7 @@ A seating chart for the classroom, installed to the home screen of an Android ta
 - Worksheet completion belongs to the lesson: a lesson that runs over several days opens with each student's latest value from an earlier day (flagged until changed), per class. The first Worksheet tap with no lesson for the day asks for one from a short list: the two most recent lessons, the planned ones, or a new name.
 - Badges carry a letter or digit as well as a colour. Day summary and attendance history list the class in roster order, whichever chart is open. A large "Pick a student" button picks a random student and skips absent ones.
 - Controls on top when the screen is upright and in a column on the left when it is sideways (or fixed either way in Settings); a tab on their edge hides them so the chart fills the screen.
-- Edit mode: drag and rotate tables, turn a table around, swap students, add or remove seats and tables; Save, Save as new, or Discard.
+- Edit mode: a switch between Move students (drag or tap to move and swap students) and Move desks (drag a desk by any part of it; tap desks to select several and move them together). A dropped desk snaps edge to edge with a close neighbour. Rotate, turn around or delete the selected desks, add single desks; Save, Save as new, or Discard.
 
 ## Data
 
@@ -23,4 +23,4 @@ node tests/model.test.mjs
 node tests/test-server.mjs 8123 <folder with a copy of the sample data>
 ```
 
-The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`, `tests/touch.mjs` for finger taps, `tests/dupes.mjs` for two devices marking the same student, `tests/scale.mjs` for the worksheet levels, `tests/signin.mjs` for quiet sign-in renewal, `tests/layout.mjs` for the controls on top or on the left, the tab that hides them and the Pick button, `tests/lessons.mjs` for the lesson list and carry-over of worksheet completion, `tests/daylist.mjs` for the order of the day summary and attendance history) use `playwright-core` with a local Chrome.
+The browser tests (`tests/e2e.mjs`, `tests/sync.mjs`, `tests/touch.mjs` for finger taps, `tests/dupes.mjs` for two devices marking the same student, `tests/scale.mjs` for the worksheet levels, `tests/signin.mjs` for quiet sign-in renewal, `tests/layout.mjs` for the controls on top or on the left, the tab that hides them and the Pick button, `tests/lessons.mjs` for the lesson list and carry-over of worksheet completion, `tests/daylist.mjs` for the order of the day summary and attendance history, `tests/desks.mjs` for Move desks, selection and snapping) use `playwright-core` with a local Chrome.

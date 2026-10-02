@@ -361,6 +361,69 @@ export function normRot(r) {
   return r < 0 ? r + 360 : r;
 }
 
+// ---------- desks: edges, overlap and snapping ----------
+
+export const WALL = 40;  // a desk's centre stays this far inside the room
+export const SNAP = 20;  // how close two edges, or two centres, must be to snap
+
+// A desk's rectangle in door view when it is turned a multiple of 90 degrees; null at any other angle.
+export function deskBox(t) {
+  const rot = normRot(t.rot || 0);
+  if (rot % 90) return null;
+  const w = t.seats.length * SEAT_W, h = SEAT_H;
+  const hw = (rot % 180 ? h : w) / 2, hh = (rot % 180 ? w : h) / 2;
+  return { l: t.x - hw, r: t.x + hw, t: t.y - hh, b: t.y + hh };
+}
+
+function deskCorners(t) {
+  const a = (t.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const hw = t.seats.length * SEAT_W / 2, hh = SEAT_H / 2;
+  return [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([x, y]) => ({ x: t.x + x * c - y * s, y: t.y + x * s + y * c }));
+}
+
+// Two desks lie on top of each other, at any angle. Desks that only touch do not.
+export function desksOverlap(a, b) {
+  const A = deskCorners(a), B = deskCorners(b);
+  for (const P of [A, B]) for (let i = 0; i < 2; i++) {
+    const ax = P[i + 1].x - P[i].x, ay = P[i + 1].y - P[i].y, len = Math.hypot(ax, ay);
+    const pa = A.map((p) => p.x * ax + p.y * ay), pb = B.map((p) => p.x * ax + p.y * ay);
+    if (Math.min(Math.max(...pa), Math.max(...pb)) - Math.max(Math.min(...pa), Math.min(...pb)) <= 0.01 * len) return false;
+  }
+  return true;
+}
+
+// Where dropped desks shift so that an edge touches the edge of a desk that was not moved: {dx, dy}.
+// The nearest pair of facing edges within SNAP wins, and only that pair. If the two desks' centres
+// along that edge are then within SNAP of lining up, they line up too. An edge that already touches
+// and needs no lining up is left out, so it does not use up the snap. Only desks turned a multiple
+// of 90 degrees take part. No shift when it would put a desk on another or outside the room.
+export function snapShift(moved, still, room) {
+  let best = null;
+  for (const m of moved) {
+    const a = deskBox(m);
+    if (!a) continue;
+    for (const o of still) {
+      const b = deskBox(o);
+      if (!b) continue;
+      const cands = [];
+      if (Math.min(a.b, b.b) - Math.max(a.t, b.t) > 0) cands.push({ axis: 'x', d: b.l - a.r, line: o.y - m.y }, { axis: 'x', d: b.r - a.l, line: o.y - m.y });
+      if (Math.min(a.r, b.r) - Math.max(a.l, b.l) > 0) cands.push({ axis: 'y', d: b.t - a.b, line: o.x - m.x }, { axis: 'y', d: b.b - a.t, line: o.x - m.x });
+      for (const c of cands) {
+        if (Math.abs(c.d) > SNAP) continue;
+        const line = Math.abs(c.line) <= SNAP ? c.line : 0;
+        if ((c.d || line) && (!best || Math.abs(c.d) < Math.abs(best.d))) best = { ...c, line };
+      }
+    }
+  }
+  const none = { dx: 0, dy: 0 };
+  if (!best) return none;
+  const s = best.axis === 'x' ? { dx: best.d, dy: best.line } : { dx: best.line, dy: best.d };
+  const at = moved.map((m) => ({ ...m, x: m.x + s.dx, y: m.y + s.dy }));
+  if (at.some((m) => m.x < WALL || m.x > room.w - WALL || m.y < WALL || m.y > room.h - WALL)) return none;
+  if (at.some((m) => still.some((o) => desksOverlap(m, o)))) return none;
+  return s;
+}
+
 // A copy of another chart's tables, seats filled with this class's active students in class order.
 export function chartFromTemplate(doc, cls, source, name, device) {
   const codes = activeRoster(doc, cls).map((s) => s.code);

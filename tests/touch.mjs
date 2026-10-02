@@ -170,7 +170,7 @@ const cb = await page.locator('.modal-head .tbtn').boundingBox();
 await tap(cb.x + cb.width / 2, cb.y + cb.height / 2);
 check('day view: a deliberate tap on Close works', !(await modalOpen()));
 
-// Edit mode by touch: the "empty" label passes a tap to its seat, and a table's grip still drags.
+// Edit mode by touch: the "empty" label passes a tap to its seat, and a table still drags with a finger.
 await page.locator('#edit').click(); await page.waitForTimeout(200);
 const el = await page.locator('.labels .empty-label').first().boundingBox();
 const full = (await seats())[0];
@@ -183,14 +183,17 @@ if (el) {
   const now = await page.evaluate(([t, i]) => window.__app.S.draft.tables[t].seats[i], [et, ei]);
   check('edit: tap a student, then an "empty" label: the student moves there', now === code, `${code} -> seat ${et}.${ei} holds ${now}`);
 }
-const hb = await page.locator('.handle').first().boundingBox();
+// By its grip, or (1.0.7: no grips) by any part of it in Move desks.
+const grips = await page.locator('.handle').count();
+if (!grips) { const mb = await page.locator('#e-move-desks').boundingBox(); await tap(mb.x + mb.width / 2, mb.y + mb.height / 2); }
+const hb = await (grips ? page.locator('.handle').first() : page.locator('.seat[data-t="0"][data-i="0"] .card')).boundingBox();
 const t0 = await page.evaluate(() => ({ ...window.__app.S.draft.tables[0] }));
 await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: hb.x + hb.width / 2, y: hb.y + hb.height / 2, id: 1 }] });
 for (let s = 1; s <= 6; s++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: hb.x + hb.width / 2 + s * 8, y: hb.y + hb.height / 2 + s * 8, id: 1 }] });
 await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 await page.waitForTimeout(200);
 const t1 = await page.evaluate(() => ({ ...window.__app.S.draft.tables[0] }));
-check('edit: a table drags by its grip with a finger', t1.x !== t0.x || t1.y !== t0.y, `${t0.x},${t0.y} -> ${t1.x},${t1.y}`);
+check('edit: a table drags with a finger (by its grip, or by any part of it in Move desks)', t1.x !== t0.x || t1.y !== t0.y, `${t0.x},${t0.y} -> ${t1.x},${t1.y}`);
 await page.locator('#edit').click(); await page.waitForTimeout(150);
 const leave = page.locator('.sheet-panel .sbtn', { hasText: 'Discard' });
 if (await leave.count()) await leave.click();

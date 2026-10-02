@@ -19,7 +19,7 @@ const W_LABEL = { 5: 'all done', 4: 'most', 3: 'about half', 2: 'some', 1: 'star
 const S = {
   doc: null, meta: null,
   draft: null, draftNew: false, draftFp: '',
-  sel: null, selTable: null, trayPick: null,
+  editMode: 'students', sel: null, selTables: [], drag: null, trayPick: null,
   picked: null, recentPicks: {},
   syncing: false, status: '', lastError: '', syncLevel: 'ok',
 };
@@ -445,12 +445,19 @@ function enterEdit(chart, isNew = false) {
   S.draft = Mo.clone(chart);
   S.draftNew = isNew;
   S.draftFp = JSON.stringify(chart.tables);
-  S.sel = null; S.selTable = null; S.trayPick = null;
+  S.editMode = 'students'; S.sel = null; S.selTables = []; S.drag = null; S.trayPick = null;
   renderAll();
 }
 
 function exitEdit() {
-  S.draft = null; S.draftNew = false; S.sel = null; S.selTable = null; S.trayPick = null;
+  S.draft = null; S.draftNew = false; S.sel = null; S.selTables = []; S.drag = null; S.trayPick = null;
+  renderAll();
+}
+
+// What a drag moves in Edit: 'students' (a student's card, onto another seat) or 'desks' (the desk
+// itself, with its students). The selected desks stay selected across the switch.
+function setEditMode(m) {
+  S.editMode = m; S.sel = null; S.trayPick = null;
   renderAll();
 }
 
@@ -458,13 +465,13 @@ function editSeatTap(ti, si) {
   const seats = S.draft.tables[ti].seats;
   if (S.trayPick) {
     seats[si] = S.trayPick; // an occupant goes back to the tray (not seated)
-    S.trayPick = null; S.sel = null; S.selTable = ti;
+    S.trayPick = null; S.sel = null; S.selTables = [ti];
     return renderAll();
   }
-  if (!S.sel) { S.sel = { t: ti, i: si }; S.selTable = ti; return renderAll(); }
+  if (!S.sel) { S.sel = { t: ti, i: si }; S.selTables = [ti]; return renderAll(); }
   if (S.sel.t === ti && S.sel.i === si) { S.sel = null; return renderAll(); }
   swapSeats(S.sel, { t: ti, i: si });
-  S.sel = null; S.selTable = ti;
+  S.sel = null; S.selTables = [ti];
   renderAll();
 }
 
@@ -473,33 +480,92 @@ function swapSeats(a, b) {
   const x = A[a.i]; A[a.i] = B[b.i]; B[b.i] = x;
 }
 
+// On the room's 5-unit grid, the centre inside the room.
 function clampTable(t) {
   const r = S.doc.room;
-  t.x = Math.max(40, Math.min(r.w - 40, Math.round(t.x / 5) * 5));
-  t.y = Math.max(40, Math.min(r.h - 40, Math.round(t.y / 5) * 5));
+  t.x = Math.max(Mo.WALL, Math.min(r.w - Mo.WALL, Math.round(t.x / 5) * 5));
+  t.y = Math.max(Mo.WALL, Math.min(r.h - Mo.WALL, Math.round(t.y / 5) * 5));
 }
 
-function selTable() { return S.selTable != null ? S.draft.tables[S.selTable] : null; }
+function selDesks() { return S.selTables.map((i) => S.draft.tables[i]).filter(Boolean); }
 
+// The toolbar buttons act on every selected desk, each one in place.
 function editAction(kind) {
-  const t = selTable();
-  const need = () => { if (!t) { toast('Tap a table (its grip or a seat) first'); return false; } return true; };
+  const sel = selDesks();
+  const need = () => { if (!sel.length) { toast('Tap a desk first'); return false; } return true; };
+  const turn = (by) => { for (const t of sel) t.rot = Mo.normRot((t.rot || 0) + by); };
   switch (kind) {
     case 'add': {
-      const nt = { id: 't' + Date.now().toString(36), x: S.doc.room.w / 2, y: S.doc.room.h / 2, rot: 0, seats: [null, null] };
-      S.draft.tables.push(nt); S.selTable = S.draft.tables.length - 1; S.sel = null;
+      const nt = { id: 't' + Date.now().toString(36), x: S.doc.room.w / 2, y: S.doc.room.h / 2, rot: 0, seats: [null] };
+      clampTable(nt);
+      S.draft.tables.push(nt); S.selTables = [S.draft.tables.length - 1]; S.sel = null;
       break;
     }
-    case 'left': if (!need()) return; t.rot = Mo.normRot((t.rot || 0) - Mo.ROTATE_STEP); break;
-    case 'right': if (!need()) return; t.rot = Mo.normRot((t.rot || 0) + Mo.ROTATE_STEP); break;
-    case 'turn': if (!need()) return; t.rot = Mo.normRot((t.rot || 0) + 180); break;
-    case 'seat+': if (!need()) return; if (t.seats.length >= 4) return toast('A table holds up to 4 seats'); t.seats.push(null); break;
+    case 'left': if (!need()) return; turn(-Mo.ROTATE_STEP); break;
+    case 'right': if (!need()) return; turn(Mo.ROTATE_STEP); break;
+    case 'turn': if (!need()) return; turn(180); break;
+    case 'seat+': if (!need()) return;
+      if (sel.every((t) => t.seats.length >= 4)) return toast('A desk holds up to 4 seats');
+      for (const t of sel) if (t.seats.length < 4) t.seats.push(null);
+      break;
     case 'seat-': if (!need()) return;
-      if (t.seats.length <= 1) return toast('Last seat: delete the table instead');
-      t.seats.pop(); S.sel = null; break;
+      if (sel.every((t) => t.seats.length <= 1)) return toast('Last seat: delete the desk instead');
+      for (const t of sel) if (t.seats.length > 1) t.seats.pop(); // an occupant goes back to the tray
+      S.sel = null; break;
     case 'del': if (!need()) return;
-      S.draft.tables.splice(S.selTable, 1); S.selTable = null; S.sel = null; break;
+      S.draft.tables = S.draft.tables.filter((t) => !sel.includes(t)); S.selTables = []; S.sel = null; break;
   }
+  renderAll();
+}
+
+// ---------- Move desks ----------
+
+// A tap selects a desk or clears it, so several can be moved or turned together.
+function deskTap(ti) {
+  S.selTables = S.selTables.includes(ti) ? S.selTables.filter((x) => x !== ti) : [...S.selTables, ti];
+  S.sel = null;
+  renderAll();
+}
+
+// A drag on a selected desk moves every selected desk; on any other desk, that desk alone, which
+// becomes the only one selected.
+function deskDragStart(ti) {
+  if (!S.selTables.includes(ti)) S.selTables = [ti];
+  const from = selDesks().map((t) => ({ t, x: t.x, y: t.y }));
+  S.drag = { from, lead: from.find((o) => o.t === S.draft.tables[ti]) };
+  S.sel = null;
+  renderEdit();
+}
+
+// The pressed desk keeps the room's grid, the others keep their places relative to it, and the
+// group as a whole stays inside the room.
+function deskDrag(dx, dy) {
+  if (!S.drag) return;
+  const { from, lead } = S.drag, r = S.doc.room;
+  const fit = (d, k, size) => {
+    const lo = Math.max(...from.map((o) => Mo.WALL - o[k])), hi = Math.min(...from.map((o) => size - Mo.WALL - o[k]));
+    return lo > hi ? 0 : Math.max(lo, Math.min(hi, d));
+  };
+  const mx = fit(Math.round((lead.x + dx) / 5) * 5 - lead.x, 'x', r.w);
+  const my = fit(Math.round((lead.y + dy) / 5) * 5 - lead.y, 'y', r.h);
+  for (const o of from) { o.t.x = o.x + mx; o.t.y = o.y + my; }
+  renderChart();
+}
+
+// On release, an edge close to a still desk's edge snaps to touch it (never while dragging).
+function deskDragEnd() {
+  if (!S.drag) return;
+  const moved = S.drag.from.map((o) => o.t);
+  const s = Mo.snapShift(moved, S.draft.tables.filter((t) => !moved.includes(t)), S.doc.room);
+  for (const t of moved) { t.x += s.dx; t.y += s.dy; }
+  S.drag = null;
+  renderAll();
+}
+
+function deskDragCancel() {
+  if (!S.drag) return;
+  for (const o of S.drag.from) { o.t.x = o.x; o.t.y = o.y; }
+  S.drag = null;
   renderAll();
 }
 
@@ -855,6 +921,7 @@ function renderTop() {
   $('edit').textContent = S.draft ? 'Done' : 'Edit';
   $('edit').classList.toggle('on', !!S.draft);
   document.body.classList.toggle('editing', !!S.draft);
+  document.body.classList.toggle('desk-mode', !!S.draft && S.editMode === 'desks');
   renderSync();
 }
 
@@ -876,7 +943,7 @@ function renderChart() {
   view.set({
     room: S.doc.room, chart, view: S.meta.view, names: namesFn(c),
     tally: S.draft ? {} : Mo.dayTally(S.doc, c, today()),
-    editing: !!S.draft, selSeat: S.sel, selTable: S.selTable, picked: S.picked,
+    editing: !!S.draft, deskMode: !!S.draft && S.editMode === 'desks', selSeat: S.sel, selTables: S.draft ? S.selTables : [], picked: S.picked,
   });
 }
 
@@ -887,18 +954,26 @@ function renderEdit() {
   $('edit-name').textContent = S.draft.name + (S.draftNew ? ' (new, not saved)' : '');
   const seated = Mo.seatedCodes(S.draft);
   const loose = Mo.activeRoster(S.doc, cls()).filter((s) => !seated.has(s.code));
+  const desks = S.editMode === 'desks';
+  $('e-move-students').setAttribute('aria-pressed', desks ? 'false' : 'true');
+  $('e-move-desks').setAttribute('aria-pressed', desks ? 'true' : 'false');
   const tray = $('tray');
   tray.textContent = '';
-  tray.append(h('span', { class: 'tray-label', text: loose.length ? 'Not seated (tap, then tap a seat):' : 'Everyone is seated.' }));
+  if (desks) tray.append(h('span', { class: 'tray-label', text: 'Drag a desk to move it. Tap desks to select several.' + (loose.length ? ' Not seated:' : '') }));
+  else tray.append(h('span', { class: 'tray-label', text: loose.length ? 'Not seated (tap, then tap a seat):' : 'Everyone is seated.' }));
   for (const s of loose) {
     tray.append(h('button', {
       class: 'traychip' + (S.trayPick === s.code ? ' on' : ''),
-      onclick: () => { S.trayPick = S.trayPick === s.code ? null : s.code; S.sel = null; renderEdit(); },
+      // Seating a student is a student move: picking one from the tray goes back to Move students.
+      onclick: () => {
+        S.trayPick = S.trayPick === s.code ? null : s.code; S.sel = null;
+        if (S.editMode === 'desks') { S.editMode = 'students'; renderAll(); } else renderEdit();
+      },
       text: s.name || s.code,
     }));
   }
-  const t = selTable();
-  for (const id of ['e-left', 'e-right', 'e-turn', 'e-seat-plus', 'e-seat-minus', 'e-del']) $(id).disabled = !t;
+  const none = !selDesks().length;
+  for (const id of ['e-left', 'e-right', 'e-turn', 'e-seat-plus', 'e-seat-minus', 'e-del']) $(id).disabled = none;
 }
 
 function renderAll() {
@@ -932,11 +1007,10 @@ async function loadSample() {
 function wire() {
   view = new ChartView($('svg'), {
     onSeatTap, onSeatLong, avoid: () => $('ctl-tab'),
-    onBgTap: () => { if (S.draft) { S.sel = null; S.selTable = null; S.trayPick = null; renderAll(); } },
-    onTableSelect: (t) => { S.selTable = t; S.sel = null; renderEdit(); renderChart(); },
-    onTableDrag: (t, x, y) => { const tb = S.draft.tables[t]; tb.x = x; tb.y = y; clampTable(tb); renderChart(); },
-    onTableDragEnd: () => renderAll(),
-    onSeatDrop: (a, b) => { swapSeats(a, b); S.sel = null; S.selTable = b.t; renderAll(); },
+    onBgTap: () => { if (S.draft) { S.sel = null; S.selTables = []; S.trayPick = null; renderAll(); } },
+    onTableSelect: (t) => { S.selTables = [t]; S.sel = null; renderEdit(); renderChart(); },
+    onDeskTap: deskTap, onDeskDragStart: deskDragStart, onDeskDrag: deskDrag, onDeskDragEnd: deskDragEnd, onDeskDragCancel: deskDragCancel,
+    onSeatDrop: (a, b) => { swapSeats(a, b); S.sel = null; S.selTables = [b.t]; renderAll(); },
   });
   $('cls').onchange = async (e) => {
     S.meta.cls = e.target.value; S.picked = null;
@@ -965,6 +1039,8 @@ function wire() {
     const ch = currentChart();
     if (ch) enterEdit(ch);
   };
+  $('e-move-students').onclick = () => setEditMode('students');
+  $('e-move-desks').onclick = () => setEditMode('desks');
   $('e-add').onclick = () => editAction('add');
   $('e-left').onclick = () => editAction('left');
   $('e-right').onclick = () => editAction('right');

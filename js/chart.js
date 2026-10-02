@@ -45,7 +45,7 @@ export class ChartView {
     new ResizeObserver(() => { this.fit(); }).observe(svg);
   }
 
-  // data: {room, chart, view, names(code)->{name, code, hasName}, tally, editing, selSeat, selTable, picked}
+  // data: {room, chart, view, names(code)->{name, code, hasName}, tally, editing, deskMode, selSeat, selTables, picked}
   set(data) { this.data = data; this.render(); }
 
   extent() {
@@ -115,14 +115,19 @@ export class ChartView {
     kt.textContent = 'BACK OF ROOM · DOOR';
 
     const text = el('g', { class: 'labels' });
+    // Selected desks are outlined on a layer above every desk, so a touching neighbour never hides the outline.
+    const marks = el('g', { class: 'selmarks' });
+    const sel = d.selTables || [];
     const tables = d.chart ? d.chart.tables : [];
     this.seatSpots = [];
     tables.forEach((t, ti) => {
       const n = t.seats.length;
       const c = this.toView(t.x, t.y);
       const rot = ((t.rot || 0) + (board ? 180 : 0)) % 360;
-      const g = el('g', { class: 'table' + (d.selTable === ti ? ' tsel' : ''), transform: `translate(${c.x},${c.y}) rotate(${rot})` }, vp);
+      const place = `translate(${c.x},${c.y}) rotate(${rot})`;
+      const g = el('g', { class: 'table' + (sel.includes(ti) ? ' tsel' : ''), 'data-t': ti, transform: place }, vp);
       el('rect', { class: 'desk', x: -n * SEAT_W / 2, y: -SEAT_H / 2, width: n * SEAT_W, height: SEAT_H, rx: 8 }, g);
+      if (sel.includes(ti)) el('rect', { class: 'selmark', x: -n * SEAT_W / 2, y: -SEAT_H / 2, width: n * SEAT_W, height: SEAT_H, rx: 8, transform: place }, marks);
       const centers = seatCenters(t);
       t.seats.forEach((code, i) => {
         const lx = (i - (n - 1) / 2) * SEAT_W;
@@ -171,13 +176,8 @@ export class ChartView {
           });
         }
       });
-      if (d.editing) {
-        const hx = n * SEAT_W / 2 + 6;
-        const hg = el('g', { class: 'handle', 'data-t': ti }, g);
-        el('rect', { x: hx, y: -32, width: 26, height: 64, rx: 6 }, hg);
-        for (const yy of [-12, 0, 12]) el('line', { x1: hx + 7, x2: hx + 19, y1: yy, y2: yy }, hg);
-      }
     });
+    vp.appendChild(marks);
     vp.appendChild(text);
     if (this.ghost) {
       const gt = el('text', { class: 'ghost', x: this.ghost.x, y: this.ghost.y }, vp);
@@ -189,12 +189,19 @@ export class ChartView {
 
   // ---------- touch ----------
 
+  // A seat, any other part of a desk (its rim or chairs), or the floor.
   hit(e) {
     const s = e.target.closest && e.target.closest('.seat');
     if (s) return { kind: 'seat', t: +s.dataset.t, i: +s.dataset.i };
-    const h = e.target.closest && e.target.closest('.handle');
-    if (h) return { kind: 'handle', t: +h.dataset.t };
+    const t = e.target.closest && e.target.closest('.table');
+    if (t) return { kind: 'table', t: +t.dataset.t };
     return { kind: 'bg' };
+  }
+
+  // A desk in mid-drag goes back to where it was (a second finger, or a cancelled touch).
+  dropDesk() {
+    const g = this.gesture;
+    if (g && g.desk && g.desk.moved) { g.desk.moved = false; this.h.onDeskDragCancel(); }
   }
 
   down(e) {
@@ -204,6 +211,7 @@ export class ChartView {
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (this.pointers.size === 2) {
       clearTimeout(this.longTimer);
+      this.dropDesk(); // a pinch never moves a desk
       this.gesture = { kind: 'pinch', start: this.pinchState(), z: { ...this.z } };
       return;
     }
@@ -216,11 +224,8 @@ export class ChartView {
         if (this.gesture && !this.gesture.moved) { this.gesture.long = true; this.h.onSeatLong(hit.t, hit.i); }
       }, LONG_MS);
     }
-    if (hit.kind === 'handle' && d.editing) {
-      const t = d.chart.tables[hit.t];
-      this.gesture.table = { x: t.x, y: t.y, p: this.fromClient(e.clientX, e.clientY) };
-      this.h.onTableSelect(hit.t);
-    }
+    // Move desks: a press on any part of a desk takes hold of it at that point.
+    if (d.editing && d.deskMode && hit.kind !== 'bg') this.gesture.desk = { t: hit.t, p: this.fromClient(e.clientX, e.clientY), moved: false };
   }
 
   pinchState() {
@@ -248,9 +253,11 @@ export class ChartView {
     if (!g.moved && Math.hypot(dx, dy) > MOVE_PX) { g.moved = true; clearTimeout(this.longTimer); }
     if (!g.moved) return;
     const d = this.data;
-    if (d.editing && g.hit.kind === 'handle' && g.table) {
+    if (g.desk) {
+      // The desk follows the finger from the point where it was pressed.
+      if (!g.desk.moved) { g.desk.moved = true; this.h.onDeskDragStart(g.desk.t); }
       const p = this.fromClient(e.clientX, e.clientY);
-      this.h.onTableDrag(g.hit.t, g.table.x + p.x - g.table.p.x, g.table.y + p.y - g.table.p.y);
+      this.h.onDeskDrag(p.x - g.desk.p.x, p.y - g.desk.p.y);
       return;
     }
     if (d.editing && g.hit.kind === 'seat' && d.chart.tables[g.hit.t].seats[g.hit.i]) {
@@ -281,15 +288,18 @@ export class ChartView {
       else this.render();
       return;
     }
-    if (g.moved) { if (g.hit.kind === 'handle') this.h.onTableDragEnd(g.hit.t); return; }
-    if (g.long) return;
-    if (g.hit.kind === 'seat') this.h.onSeatTap(g.hit.t, g.hit.i);
-    else if (g.hit.kind === 'bg') this.h.onBgTap();
+    if (g.desk && g.desk.moved) { this.h.onDeskDragEnd(); return; }
+    if (g.moved || g.long) return;
+    if (g.desk) this.h.onDeskTap(g.desk.t);
+    else if (g.hit.kind === 'seat') this.h.onSeatTap(g.hit.t, g.hit.i);
+    else if (g.hit.kind === 'table') { if (d.editing) this.h.onTableSelect(g.hit.t); }
+    else this.h.onBgTap();
   }
 
   cancel(e) {
     this.pointers.delete(e.pointerId);
     clearTimeout(this.longTimer);
+    this.dropDesk();
     this.gesture = null;
     if (this.ghost) { this.ghost = null; this.data.dragFrom = null; this.render(); }
   }

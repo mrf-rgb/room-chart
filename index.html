@@ -31,13 +31,17 @@
   <nav id="modes" aria-label="Mode"></nav>
   <div id="editbar" class="bar editbar" hidden>
     <span id="edit-name" class="edit-name"></span>
-    <button id="e-add" class="tbtn">+ Table</button>
+    <span id="e-mode" class="seg" role="group" aria-label="What a drag moves">
+      <button id="e-move-students" class="tbtn" aria-pressed="true">Move students</button>
+      <button id="e-move-desks" class="tbtn" aria-pressed="false">Move desks</button>
+    </span>
+    <button id="e-add" class="tbtn">+ Desk</button>
     <button id="e-left" class="tbtn" title="Rotate left 15&deg;">&#10226; 15&deg;</button>
     <button id="e-right" class="tbtn" title="Rotate right 15&deg;">&#10227; 15&deg;</button>
     <button id="e-turn" class="tbtn">Turn around</button>
     <button id="e-seat-plus" class="tbtn">+ Seat</button>
     <button id="e-seat-minus" class="tbtn">&minus; Seat</button>
-    <button id="e-del" class="tbtn danger">Delete table</button>
+    <button id="e-del" class="tbtn danger">Delete desk</button>
     <button id="e-menu" class="tbtn">Chart &#8943;</button>
   </div>
 </header>

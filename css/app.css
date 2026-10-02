@@ -121,7 +121,9 @@ body.lay-side .mode .mlong { display: inline; } body.lay-side .mode .mshort { di
 body.lay-side .editbar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; padding: 8px; border: 3px solid #f59e0b; border-radius: 12px; }
 body.lay-side .editbar .edit-name { grid-column: 1 / -1; margin: 0; overflow-wrap: anywhere; }
 body.lay-side .editbar .tbtn { min-width: 0; padding: 2px 4px; white-space: normal; line-height: 1.1; }
-body.lay-side .editbar #e-del, body.lay-side .editbar #e-menu { grid-column: 1 / -1; }
+/* The switch takes a row of its own; Delete and the chart menu share the last one, so the column is no taller than before. */
+body.lay-side .editbar .seg { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
+body.lay-side .editbar .seg .tbtn, body.lay-side .editbar #e-del { font-size: 16px; } /* two lines of text in a button of the usual height */
 /* Hidden: the chart fills the screen; only the tab stays. */
 body.ctl-hidden #top { display: none; }
 body.ctl-hidden.lay-top #stage { margin-top: env(safe-area-inset-top, 0px); }
@@ -141,6 +143,11 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 .seat.picked .card { stroke: #7c3aed; stroke-width: 8; animation: pulse 0.9s ease-in-out 5; }
 .seat.dragging .card { opacity: .35; }
 .table.tsel .desk { stroke: #f59e0b; stroke-width: 5; }
+/* Selected desks: an outline and a light tint above every desk; a press goes through to the desk. */
+.selmarks { pointer-events: none; }
+.selmark { fill: rgba(245, 158, 11, .2); stroke: #f59e0b; stroke-width: 9; }
+body.desk-mode .table { cursor: move; }
+body.desk-mode .seat { cursor: move; }
 @keyframes pulse { 50% { stroke-width: 2; } }
 .labels { pointer-events: none; } /* names, codes and chips: a tap goes through to the seat below */
 .name { font-weight: 800; text-anchor: middle; fill: var(--ink); dominant-baseline: middle; }
@@ -156,13 +163,18 @@ body.ctl-hidden.lay-side #stage { margin-left: env(safe-area-inset-left, 0px); }
 /* Worksheet value carried over from an earlier day of the lesson: dashed outline and a corner dot. */
 .chip.carried { stroke: #111827; stroke-width: 2.5; stroke-dasharray: 5 3; }
 .chip-dot { fill: #fff; stroke: #111827; stroke-width: 2; }
-.handle rect { fill: #f59e0b; stroke: #92400e; stroke-width: 2; cursor: grab; }
-.handle line { stroke: #78350f; stroke-width: 3; }
 .ghost { font-size: 30px; font-weight: 800; text-anchor: middle; fill: #7c3aed; pointer-events: none; paint-order: stroke; stroke: #fff; stroke-width: 6px; }
 
 /* ---------- edit ---------- */
 .editbar { background: #fff7e0; color: var(--ink); margin: 0 -8px; padding: 6px 8px; border-top: 3px solid #f59e0b; }
 .edit-name { font-weight: 800; margin-right: 6px; }
+/* What a drag moves: a two-part switch. The mode that is on is filled dark; the other is plain. */
+.seg { display: inline-flex; }
+#top .seg .tbtn { border-color: var(--head); border-radius: 0; }
+#top .seg .tbtn:first-child { border-radius: 10px 0 0 10px; }
+#top .seg .tbtn:last-child { border-radius: 0 10px 10px 0; border-left-width: 0; }
+.seg .tbtn[aria-pressed="true"] { background: var(--head); color: #fff; }
+.seg .tbtn[aria-pressed="false"] { background: #fff; color: var(--ink); }
 .tray { position: absolute; left: 0; right: 0; bottom: 0; max-height: 84px; overflow-y: auto; background: #fff7e0; border-top: 3px solid #f59e0b;
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; }
 .tray-label { font-weight: 600; color: var(--muted); }

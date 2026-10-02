@@ -282,6 +282,64 @@ test('a typed lesson is trimmed and matched without regard to capitals against t
   assert.equal(Mo.dayTally(d, 'B3', '2026-09-29')['7301'].W, '3');
 });
 
+// ---------- desks: edges and snapping (1.0.7) ----------
+const desk = (x, y, rot = 0, n = 1) => ({ id: `d${x}-${y}`, x, y, rot, seats: Array(n).fill(null) });
+const room = { w: 1060, h: 680 };
+const drop = (m, still) => { const s = Mo.snapShift([m], still, room); return [m.x + s.dx, m.y + s.dy]; };
+
+test('snap: an edge within 20 of a still desk\'s edge touches it, and the two line up', () => {
+  const still = [desk(500, 300)];
+  assert.deepEqual(drop(desk(665, 310), still), [650, 300], 'on the right, 15 away and 10 off line');
+  assert.deepEqual(drop(desk(335, 290), still), [350, 300], 'on the left');
+  assert.deepEqual(drop(desk(510, 405), still), [500, 390], 'behind');
+  assert.deepEqual(drop(desk(490, 195), still), [500, 210], 'in front');
+  assert.deepEqual(drop(desk(640, 300), still), [650, 300], 'dropped 10 over the edge: pushed out to touch');
+  assert.deepEqual(drop(desk(665, 340), still), [650, 340], 'edges touch; 40 off line, so it is not lined up');
+});
+
+test('snap: nothing moves beyond 20, at an angle, or when the edges do not face each other', () => {
+  const still = [desk(500, 300)];
+  assert.deepEqual(drop(desk(690, 300), still), [690, 300], '40 away');
+  assert.deepEqual(drop(desk(675, 300), still), [675, 300], '25 away');
+  assert.deepEqual(drop(desk(665, 310, 45), still), [665, 310], 'a desk at 45 degrees is placed freely');
+  assert.deepEqual(drop(desk(665, 310), [desk(500, 300, 45)]), [665, 310], 'a still desk at 45 degrees is not a target');
+  assert.deepEqual(drop(desk(665, 400), still), [665, 400], 'diagonal: no shared edge');
+  assert.equal(Mo.deskBox(desk(0, 0, 15)), null);
+});
+
+test('snap: turned desks use their turned shape; the nearest edge wins; one snap per drop', () => {
+  // A desk turned 90 degrees is 90 wide and 150 deep.
+  assert.deepEqual(Mo.deskBox(desk(500, 300, 90)), { l: 455, r: 545, t: 225, b: 375 });
+  assert.deepEqual(Mo.deskBox(desk(500, 300, 180, 2)), { l: 350, r: 650, t: 255, b: 345 });
+  assert.deepEqual(drop(desk(635, 300, 270), [desk(500, 300)]), [620, 300]);
+  // Two still desks: 8 from one edge, 15 from the other. Only the nearer one pulls.
+  assert.deepEqual(drop(desk(500, 300), [desk(342, 300), desk(665, 300)]), [492, 300]);
+  // An edge that already touches and is far off line does not use up the snap: the other desk pulls.
+  assert.deepEqual(drop(desk(425, 340), [desk(530, 430), desk(260, 330)]), [410, 330]);
+  assert.deepEqual(drop(desk(425, 340), [desk(530, 430)]), [425, 340]);
+  // Touching and nearly in line: it lines up.
+  assert.deepEqual(drop(desk(512, 390), [desk(500, 300)]), [500, 390]);
+});
+
+test('snap: never onto another desk, never out of the room', () => {
+  // Lining up behind the first desk would lie 2 over the second: dropped as released.
+  const still = [desk(800, 330), desk(652, 420)];
+  assert.deepEqual(drop(desk(820, 435), still), [820, 435]);
+  assert.deepEqual(drop(desk(820, 435), [still[0]]), [800, 420], 'without the second desk it snaps');
+  assert.deepEqual(drop(desk(45, 100), [desk(180, 100)]), [45, 100], 'the snap would leave the room');
+  assert.equal(Mo.desksOverlap(desk(500, 300), desk(650, 300)), false, 'touching is not overlapping');
+  assert.equal(Mo.desksOverlap(desk(500, 300), desk(649, 300)), true);
+  assert.equal(Mo.desksOverlap(desk(500, 300), desk(630, 380, 45)), true, 'a turned desk over a corner');
+  assert.equal(Mo.desksOverlap(desk(500, 300), desk(700, 420, 45)), false);
+});
+
+test('snap: a group shifts as one, by the nearest edge of any of its desks', () => {
+  const group = [desk(300, 500), desk(450, 500)], still = [desk(590, 505)];
+  const s = Mo.snapShift(group, still, room);
+  assert.deepEqual(s, { dx: -10, dy: 5 });
+  assert.deepEqual(Mo.snapShift(group, [], room), { dx: 0, dy: 0 });
+});
+
 // Random runs. Without deletes, every merge order gives the same document. With deletes, one case
 // depends on order: a device deletes the mark on screen while another still holds an older duplicate
 // it has not synced; only live marks compete (ruling 1), so that duplicate may or may not come back

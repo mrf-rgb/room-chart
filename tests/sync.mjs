@@ -43,8 +43,7 @@ await tapMarks(B, [ids[10]], 'att'); await tapMarks(B, [ids[10]], 'att');
 // chart save on A first, then on B (later) for the same chart
 async function editSave(dev, action) {
   await dev.page.locator('#edit').click();
-  await dev.page.locator('.handle').nth(action.t).dispatchEvent('pointerdown').catch(() => {});
-  await dev.page.evaluate((t) => { const a = window.__app; a.S.selTable = t; }, action.t);
+  await dev.page.locator(`.seat[data-t="${action.t}"][data-i="0"]`).click(); // a tap on a seat selects its table
   await dev.page.locator(action.btn).click();
   await dev.page.locator('#edit').click();
   await dev.page.locator('.sheet-panel .sbtn', { hasText: 'Save (overwrite' }).click();
